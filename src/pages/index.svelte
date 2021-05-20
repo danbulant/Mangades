@@ -1,6 +1,12 @@
 <script>
 	import request from "../util/request";
-	var name = "";
+    import { params } from '@roxi/routify'
+	var name = $params.search;
+    $: {
+        const url = new URL(window.location.toString());
+        url.searchParams.set("search", name);
+        history.replaceState(history.state, "", url.toString());
+    }
 	var result = request("manga", "title=" + name + "&contentRating[]=safe&contentRating[]=suggestive");
 	$: result = request("manga", "title=" + name + "&contentRating[]=safe&contentRating[]=suggestive");
 	result.then(console.log);
