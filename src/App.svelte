@@ -1,15 +1,9 @@
 <script>
-	var name = "overlord";
-	const base = "https://api.mangadex.org/";
-
-	function request(endpoint, query, type = "GET", body) {
-		return fetch(base + endpoint + "?" + query, {
-			method: type,
-			body: body ? JSON.stringify(body) : undefined
-		}).then(resp => resp.json());
-	}
+	import request from "./request";
+	var name = "";
 
 	var result = request("manga", "title=" + name + "&contentRating[]=safe&contentRating[]=suggestive");
+	$: result = request("manga", "title=" + name + "&contentRating[]=safe&contentRating[]=suggestive");
 	result.then(console.log);
 </script>
 
@@ -38,8 +32,10 @@
 <style>
 	main
 	{
-		max-width: 720px;
+		max-width: 450px;
 		margin: auto;
 	}
-	
+	input {
+		width: 100%;
+	}
 </style>
