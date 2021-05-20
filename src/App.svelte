@@ -1,41 +1,10 @@
 <script>
-	import request from "./request";
-	var name = "";
-
-	var result = request("manga", "title=" + name + "&contentRating[]=safe&contentRating[]=suggestive");
-	$: result = request("manga", "title=" + name + "&contentRating[]=safe&contentRating[]=suggestive");
-	result.then(console.log);
+  import { Router } from "@roxi/routify";
+  import { routes } from "../.routify/routes";
 </script>
 
-<main>
-
-	<h1>MANGADEX</h1>
-	<input type="text" bind:value={name}>
-
-	{#await result}
-		Loading...
-	{:then result}
-		<br> 
-		Showing results: {result.results.length}
-		<br>
-		Total results: {result.total}
-		<ul>
-			{#each result.results as manga}
-				<li>
-					{manga.data.attributes.title.en}
-				</li>
-			{/each}
-		</ul>
-	{/await}
-</main>
-
-<style>
-	main
-	{
-		max-width: 450px;
-		margin: auto;
-	}
-	input {
-		width: 100%;
-	}
+<style  global>
+  @import "../assets/global.css";
 </style>
+
+<Router {routes} />
