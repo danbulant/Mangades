@@ -27,6 +27,10 @@
 	$: result.then(console.log);
 </script>
 
+<svelte:head>
+	<title>Mangadex search</title>
+</svelte:head>
+
 <main>
 
 	<h1>MANGADEX</h1>
