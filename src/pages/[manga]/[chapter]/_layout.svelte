@@ -1,4 +1,7 @@
 <script>
+import request from "../../../util/request";
+
+
     export var scoped;
     export var chapter;
 
@@ -13,7 +16,7 @@
         return data;
     }
 
-    var chapterData = getchapter(chapter);
+    var chapterData = getChapter(chapter);
     $: chapterData = getChapter(chapter);
 </script>
 

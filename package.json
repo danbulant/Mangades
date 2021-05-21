@@ -27,6 +27,7 @@
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@roxi/routify": "^2.18.1",
+    "@types/streamsaver": "^2.0.0",
     "cross-env": "^7.0.3",
     "fs-extra": "^10.0.0",
     "nollup": "^0.16.4",
@@ -54,5 +55,9 @@
     "blacklist": [
       "/example/modal/basic/4"
     ]
+  },
+  "dependencies": {
+    "fflate": "^0.6.10",
+    "streamsaver": "^2.0.5"
   }
 }
