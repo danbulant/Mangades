@@ -2,11 +2,12 @@
     import { params } from '@roxi/routify'
 	import request from "../util/request";
     import ratelimit from "../util/ratelimit";
+    import { url } from '@roxi/routify/runtime/helpers';
     
 	var name = $params.search;
     $: {
         const url = new URL(window.location.toString());
-        url.searchParams.set("search", name);
+        url.searchParams.set("search", name || "");
         history.replaceState(history.state, "", url.toString());
     }
     /**
@@ -41,7 +42,9 @@
 		<ul>
 			{#each result.results as manga}
 				<li>
-					{manga.data.attributes.title.en}
+                    <a href={$url("./" + manga.data.id)}>
+                        {manga.data.attributes.title.en}
+                    </a>
 				</li>
 			{/each}
 		</ul>
@@ -49,11 +52,6 @@
 </main>
 
 <style>
-	main
-	{
-		max-width: 450px;
-		margin: auto;
-	}
 	input {
 		width: 100%;
 	}
