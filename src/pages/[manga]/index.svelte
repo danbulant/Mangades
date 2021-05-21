@@ -1,6 +1,5 @@
 <script>
-    import { title } from "process";
-import request from "../../util/request";
+    import request from "../../util/request";
 
     export var scoped;
 
