@@ -42,7 +42,6 @@
             hashes.push(hash);
         }
 
-        console.log(URLs);
         text = "Found " + URLs.length + " pages";
         const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.data.attributes.chapter}.epub`, {
             writableStrategy: undefined, // (optional)
@@ -60,7 +59,6 @@
                 writer.write(data);
             }
             if(final) {
-                console.log("Finished generating zip.");
                 writer.close();
             }
         };
@@ -78,13 +76,6 @@
   </rootfiles>
 </container>`), true);
 
-            /**
-             * @param {string} string
-             */
-            function format(string) {
-                return string.substr(0, string.lastIndexOf(".")).replace(/-/g, "");
-            }
-
         const opf = new ZipPassThrough("OEBPS/content.opf");
         zip.add(opf);
         opf.push(enc.encode(`<?xml version="1.0"?>
@@ -96,8 +87,9 @@
     <dc:language>en</dc:language>
     <dc:creator>Unknown</dc:creator>
     <dc:identifier id="bookid">https://manga.danbulant.eu/${mangaId}/${chapter.data.id}</dc:identifier>
+    <dc:type>Image</dc:type>
 
-    <meta property="dcterms:modified">${chapter.data.attributes.updatedAt.toString().split("+")[0]}</meta>
+    <meta property="dcterms:modified">${chapter.data.attributes.updatedAt.toString().split("+")[0]}Z</meta>
     <meta property="rendition:layout">pre-paginated</meta>
     <meta property="rendition:orientation">portrait</meta>
     <meta property="rendition:spread">landscape</meta>
@@ -105,47 +97,51 @@
 
   <manifest>
     <item id="fallback" href="fallback.xhtml" media-type="application/xhtml+xml" />
-    ${hashes.map(t => `    <item id="${format(t)}" href="${t}" fallback="fallback" media-type="image/${t.substr(t.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : "png"}"/>`).join("\n")}
+    ${hashes.map((t, i) => `    <item id="i${i}" href="${t}" fallback="fallback" media-type="image/${t.substr(t.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : "png"}"/>`).join("\n")}
+    ${hashes.map((t, i) => `    <item id="p${i}" href="${i}.xhtml"  media-type="application/xhtml+xml" />`).join("\n")}
 
     <item id="ncxtoc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
   </manifest>
 
   <spine toc="ncxtoc">
-    ${hashes.map((t, i) => `    <itemref idref="${format(t)}" properties="page-spread-${i % 2 ? "right" : "left"}" />`).join("\n")}
+    ${hashes.map((t, i) => `    <itemref idref="p${i}" linear="yes" />`).join("\n")}
+    <itemref idref="fallback" linear="no" />
   </spine>
 
 </package>`), true);
 
         const ncx = new ZipPassThrough("OEBPS/toc.ncx");
         zip.add(ncx);
-        ncx.push(enc.encode(`<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<ncx:ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-  <ncx:head>
-    <ncx:meta name="dtb:depth" content="-1"/>
-    <ncx:meta name="dtb:totalPageCount" content="0"/>
-    <ncx:meta name="dtb:maxPageNumber" content="0"/>
-  </ncx:head>
-  <ncx:docTitle>
-    <ncx:text>${manga.title.en} ${chapter.data.attributes.chapter}</ncx:text>
-  </ncx:docTitle>
-  <ncx:docAuthor>
-    <ncx:text>Unknown</ncx:text>
-  </ncx:docAuthor>
+        ncx.push(enc.encode(`<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+<ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="dtb:depth" content="1"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>${manga.title.en} ${chapter.data.attributes.chapter}</text>
+  </docTitle>
+  <docAuthor>
+    <text>Unknown</text>
+  </docAuthor>
 
-  <ncx:navMap>
-    <ncx:navPoint id="p01" playOrder="1">
-      <ncx:navLabel>
-        <ncx:text>${manga.title.en} ${chapter.data.attributes.chapter}</ncx:text>
-      </ncx:navLabel>
-      <ncx:content src="${hashes[0]}"/>
-    </ncx:navPoint>
-  </ncx:navMap>
-</ncx:ncx>`), true);
+  <navMap>
+    ${hashes.map((t, i) => `
+        <navPoint id="p${i}" playOrder="${i + 1}">
+            <navLabel>
+                <text>${manga.title.en} ${chapter.data.attributes.chapter} ${i}</text>
+            </navLabel>
+            <content src="${i}.xhtml"/>
+        </navPoint>
+    `).join("\n")}
+    </navMap>
+</ncx>`), true);
 
         const fallback = new ZipPassThrough("OEBPS/fallback.xhtml");
         zip.add(fallback);
         fallback.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
-<?xml-model href="file:/C:/EPub/epub-revision/build/30/schema/epub-nav-30.rnc" type="application/relax-ng-compact-syntax"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
   <head>
     <title>${manga.title.en} ${chapter.data.attributes.chapter}</title>
@@ -153,6 +149,15 @@
   <body>
     <h2>This book cannot be opened on this device or using this program</h2>
     <p>We're sorry</p>
+
+    <nav epub:type="toc">
+        <h1>Chapter list</h1>
+        <ol>
+            <li>
+                <a href="p0.xhtml">Chapter ${chapter.data.attributes.chapter}</a>
+            </li>
+        </ol>
+    </nav>
   </body>
 </html>`), true);
 
@@ -165,6 +170,19 @@
             const image = new ZipPassThrough("OEBPS/" + hash);
             zip.add(image);
             image.push(new Uint8Array(await res.arrayBuffer()), true);
+            const textContent = new ZipPassThrough("OEBPS/" + i + ".xhtml");
+            zip.add(textContent);
+            textContent.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+            <head>
+                <title>Page ${i + 1}</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                <meta name="EPB-UUID" content=""/>
+            </head>
+            <body>
+                <img style="margin:auto;height:100%;" src="${hash}" />
+            </body>
+            </html>`), true);
         }
         
         zip.end();
