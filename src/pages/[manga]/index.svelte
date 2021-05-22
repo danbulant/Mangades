@@ -198,6 +198,12 @@
 <main>
     <h1>{manga.title.en}</h1>
 
+    <div class="linklist">
+        <a href={$url("..")}>Go back to search page</a>
+    </div>
+
+    <br>
+
     <div class="state {state}">
         <div class="progress" style="width: {progress * 100}%;"></div>
 
