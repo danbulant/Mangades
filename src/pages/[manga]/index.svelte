@@ -26,7 +26,7 @@
 
     var progress = 0;
     var state = "idle";
-    var text = "Choose a chapter to view or download";
+    var text = "Choose a chapter to view online or download EPUB";
     var enc = new TextEncoder(); 
     async function prepare(chapter) {
         state = "active";
