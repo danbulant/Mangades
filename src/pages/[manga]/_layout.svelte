@@ -4,6 +4,7 @@
     export var manga;
 
     function getManga(id) {
+        if(!id) return;
         return request("manga/" + id);
     }
     var mangaData = getManga(manga);
