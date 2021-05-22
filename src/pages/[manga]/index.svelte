@@ -13,7 +13,7 @@
     $: manga = scoped.manga;
 
     async function getMangaChapters(id) {
-        const data = await request("manga/" + id + "/feed");
+        const data = await request("manga/" + id + "/feed?translatedLanguage[]=en");
         data.results.sort((a, b) => a.data.attributes.chapter - b.data.attributes.chapter);
         return data;
     }
@@ -221,6 +221,9 @@
     {#await chapters}
         Loading chapters...
     {:then chapters}
+        {#if chapters.results.filter(c => c.data.attributes.translatedLanguage === "en").length === 0}
+            <p>No chapters found.</p>
+        {/if}
         <ol class="hide-nums">
            {#each chapters.results.filter(c => c.data.attributes.translatedLanguage === "en") as chapter} 
                 <li on:click={() => prepare(chapter)}>
