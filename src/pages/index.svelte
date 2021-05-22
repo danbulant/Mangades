@@ -15,17 +15,45 @@
      * @param {string} title
      * @returns {Promise<object>}
      */
-    function search(title) {
+    async function search(title, offset=0) {
         var query = "";
         if(title) query += "title=" + encodeURIComponent(name) + "&";
-        query += "contentRating[]=safe&contentRating[]=suggestive";
-        return request("manga", query);
+        query += "contentRating[]=safe&contentRating[]=suggestive&limit=100&offset=" + offset;
+        const res = await request("manga", query);
+		for(const manga of res.results) {
+			for(const relation of manga.relationships) {
+				if(relation.type === "cover") {
+					console.log(manga, relation);
+				}
+			}
+		}
+		return res;
     }
+
 	var result = search(name);
-    result.then(console.log);
 	$: result = ratelimit(search, name);
-	$: result.then(console.log);
+
+	var scrollSearch = null;
+	/**
+	 * @param {MouseEvent} e
+	 */
+	async function scroll(e) {
+		if(scrollSearch !== null) return;
+		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 100 && (await result).results.length < (await result).total) {
+			scrollSearch = name;
+			const res = await search(name, (await result).results.length);
+			if(scrollSearch === name && res.results.length) {
+				(await result).results.push(...res.results);
+				result = result; // trigger reload
+			}
+			setTimeout(() => {
+				scrollSearch = null;
+			}, 500);
+		} 
+	}
 </script>
+
+<svelte:window on:scroll={scroll} />
 
 <svelte:head>
 	<title>Mangadex search</title>
@@ -53,6 +81,11 @@
 				</li>
 			{/each}
 		</ul>
+
+		{#if result.results.length < result.total}
+			<p>Loading next manga...</p>
+		{/if}
+		<p>You got the end of the list.</p>
 	{/await}
 </main>
 
