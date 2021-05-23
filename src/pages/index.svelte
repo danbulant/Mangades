@@ -76,11 +76,24 @@
 		Loading...
 	{:then result}
 		<div class="flex">
-			<div>
-				Showing results: {result.results.length}
-				<br>
-				Total results: {result.total}
-			</div>
+			<table>
+				<tr>
+					<td>
+						Showing results:
+					</td>
+					<td class="value">
+						{result.results.length}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Total results:
+					</td>
+					<td class="value">
+						{result.total}
+					</td>
+				</tr>
+			</table>
 			<div>
 				<button on:click={() => randomManga()} disabled={randomMangaLoading}>Random</button>
 			</div>
@@ -110,5 +123,23 @@
 	.flex {
 		display: flex;
 		justify-content: space-between;
+	}
+	.value {
+		text-align: right;
+	}
+
+	ul {
+		padding: 0;
+	}
+
+	li {
+		padding: 4px 0;
+	}
+
+	a {
+		color: black;
+	}
+	a:hover {
+		color: rgb(0,100,200);
 	}
 </style>
