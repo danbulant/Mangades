@@ -2,7 +2,7 @@
     import { params } from '@roxi/routify'
 	import request from "../util/request";
     import ratelimit from "../util/ratelimit";
-    import { url } from '@roxi/routify/runtime/helpers';
+    import { goto, url } from '@roxi/routify/runtime/helpers';
     
 	var name = $params.search;
     $: {
@@ -39,7 +39,7 @@
 	 */
 	async function scroll(e) {
 		if(scrollSearch !== null) return;
-		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 100 && (await result).results.length < (await result).total) {
+		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 300 && (await result).results.length < (await result).total) {
 			scrollSearch = name;
 			const res = await search(name, (await result).results.length);
 			if(scrollSearch === name && res.results.length) {
@@ -50,6 +50,13 @@
 				scrollSearch = null;
 			}, 500);
 		} 
+	}
+
+	var randomMangaLoading = false;
+	async function randomManga() {
+		randomMangaLoading = true;
+		const res = await request("manga/random");
+		$goto("./" + res.data.id);
 	}
 </script>
 
@@ -68,10 +75,16 @@
 	{#await result}
 		Loading...
 	{:then result}
-		<br> 
-		Showing results: {result.results.length}
-		<br>
-		Total results: {result.total}
+		<div class="flex">
+			<div>
+				Showing results: {result.results.length}
+				<br>
+				Total results: {result.total}
+			</div>
+			<div>
+				<button on:click={() => randomManga()} disabled={randomMangaLoading}>Random</button>
+			</div>
+		</div>
 		<ul>
 			{#each result.results as manga}
 				<li>
@@ -92,5 +105,10 @@
 <style>
 	input {
 		width: 100%;
+		margin-bottom: 5px;
+	}
+	.flex {
+		display: flex;
+		justify-content: space-between;
 	}
 </style>
