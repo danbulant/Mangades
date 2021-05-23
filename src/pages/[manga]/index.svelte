@@ -140,22 +140,60 @@
         {#if chapters.results.filter(c => c.data.attributes.translatedLanguage === "en").length === 0}
             <p>No chapters found.</p>
         {/if}
-        <ol class="hide-nums">
-           {#each chapters.results.filter(c => c.data.attributes.translatedLanguage === "en") as chapter} 
-                <li on:click={() => prepare(chapter)}>
-                    {chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}
-                    Chapter {chapter.data.attributes.chapter}
-                    {chapter.data.attributes.title}
-                    - Download - <a href={$url("./" + chapter.data.id)} on:click|stopPropagation>View</a>
-                </li>
-           {/each}
-        </ol>
+        <table>
+            <tbody>
+                {#each chapters.results.filter(c => c.data.attributes.translatedLanguage === "en") as chapter} 
+                    <tr>
+                        <td>{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
+                        <td>Chapter {chapter.data.attributes.chapter}</td>
+                        <td>{chapter.data.attributes.title}</td>
+                        <td class="action"><span on:click={() => prepare(chapter)}>Download</span></td>
+                        <td class="action"><a href={$url("./" + chapter.data.id)} on:click|stopPropagation>View</a></td>
+                    </tr>
+                {/each}
+            </tbody>
+        </table>
     {/await}
 </main>
 
 <style>
-    .hide-nums {
+    main {
+        font-size: 1.1rem;
+    }
+    tbody {
         list-style-type: disc;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    tr {
+        border: 1px solid black;
+    }
+
+    tr:hover {
+        background: rgba(0,0,0,0.1);
+    }
+
+    td {
+        padding: 5px 5px;
+    }
+
+    td.action {
+        font-weight: bold;
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    td.action:hover {
+        text-decoration: underline;
+        color: rgb(0,100,200);
+    }
+
+    td.action a {
+        color: inherit;
     }
 
     .state {
