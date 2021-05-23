@@ -1,5 +1,5 @@
 <script>
-    import { url } from "@roxi/routify/runtime/helpers";
+    import { page, url } from "@roxi/routify/runtime/helpers";
     import { Zip, ZipPassThrough } from "fflate";
     import { prepareEpub } from "../../util/generateEpub";
     // import * as streamSaver from "streamsaver";
@@ -12,6 +12,8 @@
     $: mangaId = scoped.id;
     var manga = scoped.manga;
     $: manga = scoped.manga;
+    var relationships = scoped.mangaRelationships;
+    $: relationships = scoped.mangaRelationships;
 
     async function getMangaChapters(id) {
         const data = await request("manga/" + id + "/feed?translatedLanguage[]=en");
@@ -24,10 +26,17 @@
 
     console.log(manga);
     console.log(chapters);
+    console.log(relationships);
 
     var progress = 0;
     var state = "idle";
     var text = "Choose a chapter to view online or download EPUB";
+    var pagesDone = 0;
+    var totalPages = 0;
+
+    $: progress = pagesDone / (totalPages || 1);
+    $: if(totalPages) text = `Saving page ${pagesDone + 1} of ${totalPages}`;
+
     var enc = new TextEncoder(); 
     async function prepare(chapter) {
         state = "active";
@@ -44,6 +53,7 @@
         }
 
         text = "Found " + URLs.length + " pages";
+        totalPages += URLs.length;
 
         const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.data.attributes.chapter}.epub`, {
             writableStrategy: undefined, // (optional)
@@ -59,8 +69,6 @@
         });
 
         for(var i = 0; i < URLs.length; i++) {
-            text = `Saving page ${i + 1} of ${URLs.length}`;
-            progress = (i + 1) / URLs.length;
             const url = URLs[i];
             const hash = hashes[i];
             const res = await fetch(url);
@@ -80,11 +88,22 @@
                 <img style="margin:auto;height:100%;" src="${hash}" />
             </body>
             </html>`), true);
+            pagesDone++;
         }
         
         zip.end();
-        text = "Done!";
-        state = "idle";
+        if(pagesDone === totalPages) {
+            text = "Done!";
+            state = "idle";
+            pagesDone = 0;
+            totalPages = 0;
+
+            setTimeout(() => {
+                if(totalPages === 0) {
+                    text = "Choose a chapter to view online or download EPUB";
+                }
+            }, 3000);
+        }
     }
 </script>
 
