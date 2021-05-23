@@ -15,5 +15,5 @@
 {#await mangaData}
     loading...
 {:then manga}
-    <slot scoped={({ manga: manga.data.attributes, id: manga.data.id })} />
+    <slot scoped={({ manga: manga.data.attributes, mangaRelationships: manga.relationships, id: manga.data.id })} />
 {/await}
