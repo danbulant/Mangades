@@ -144,11 +144,11 @@
             <tbody>
                 {#each chapters.results.filter(c => c.data.attributes.translatedLanguage === "en") as chapter} 
                     <tr>
-                        <td>{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
-                        <td>Chapter {chapter.data.attributes.chapter}</td>
+                        <td class="no-wrap">{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
+                        <td class="no-wrap">Chapter {chapter.data.attributes.chapter}</td>
                         <td>{chapter.data.attributes.title}</td>
-                        <td class="action"><span on:click={() => prepare(chapter)}>Download</span></td>
-                        <td class="action"><a href={$url("./" + chapter.data.id)} on:click|stopPropagation>View</a></td>
+                        <td class="action no-wrap"><span on:click={() => prepare(chapter)}>Download</span></td>
+                        <td class="action no-wrap"><a href={$url("./" + chapter.data.id)} on:click|stopPropagation>View</a></td>
                     </tr>
                 {/each}
             </tbody>
@@ -159,6 +159,9 @@
 <style>
     main {
         font-size: 1.1rem;
+    }
+    .no-wrap {
+        white-space: nowrap;
     }
     tbody {
         list-style-type: disc;
