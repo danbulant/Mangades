@@ -61,7 +61,8 @@
         });
 
         const zip = await prepareEpub({
-            title: `https://manga.danbulant.eu/${mangaId}/${chapter.data.id}`,
+            title: `${manga.title.en} ${chapter.data.attributes.chapter}`,
+            id: `https://manga.danbulant.eu/${mangaId}/${chapter.data.id}`,
             file,
             chapter: chapter.data.attributes.chapter,
             links: hashes,

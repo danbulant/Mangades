@@ -8,6 +8,7 @@ const enc = new TextEncoder();
  * @param {WritableStream} opts.file
  * @param {number} opts.chapter
  * @param {string|Date} opts.updatedAt
+ * @param {string} opts.id
  */
 export async function prepareEpub(opts) {
     const writer = opts.file.getWriter();
@@ -51,7 +52,7 @@ export async function prepareEpub(opts) {
     <dc:title>${opts.title}</dc:title>
     <dc:language>en</dc:language>
     <dc:creator>Unknown</dc:creator>
-    <dc:identifier id="bookid"></dc:identifier>
+    <dc:identifier id="bookid">${opts.id}</dc:identifier>
     <dc:type>Image</dc:type>
 
     <meta property="dcterms:modified">${opts.updatedAt.toString().split("+")[0]}Z</meta>
