@@ -1,5 +1,5 @@
 <script>
-    import { goto } from "@roxi/routify/runtime/helpers";
+    import { redirect } from "@roxi/routify/runtime/helpers";
 
-    $goto("./1");
+    $redirect("./1");
 </script>
