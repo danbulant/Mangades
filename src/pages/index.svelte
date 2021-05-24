@@ -30,7 +30,6 @@
 		return res;
     }
 
-	var result = search(name);
 	$: result = ratelimit(search, name);
 
 	var scrollSearch = null;

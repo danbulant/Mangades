@@ -21,7 +21,6 @@
         return data;
     }
 
-    var chapters = getMangaChapters(mangaId);
     $: chapters = getMangaChapters(mangaId);
 
     console.log(manga);
