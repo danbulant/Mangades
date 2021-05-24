@@ -23,7 +23,7 @@
      * @param {KeyboardEvent} e
      */
     function keydown(e) {
-        if(!image.complete) return false;
+        if(!image.complete) return e.preventDefault() || false;
         if(!wasArrowDownUp || !wasArrowUpUp) return;
         switch(e.key) {
             case "PageUp":
