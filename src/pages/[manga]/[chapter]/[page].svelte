@@ -16,32 +16,65 @@
 
     var quality = "data";
 
+    var wasArrowUpUp = true;
+    var wasArrowDownUp = true;
+
     /**
      * @param {KeyboardEvent} e
      */
     function keydown(e) {
+        if(!image.complete) return false;
+        if(!wasArrowDownUp || !wasArrowUpUp) return;
         switch(e.key) {
-            case "ArrowLeft":
             case "PageUp":
             case "ArrowUp":
+                wasArrowUpUp = false;
+                if(0 < document.scrollingElement.scrollTop) return;
+            case "ArrowLeft":
                 prev();
                 break;
-            case "ArrowRight":
             case "PageDown":
             case "ArrowDown":
+                wasArrowDownUp = false;
+                if(document.scrollingElement.scrollHeight > document.scrollingElement.offsetHeight + document.scrollingElement.scrollTop) return;
+            case "ArrowRight":
                 next();
                 break;
         }
     }
 
+    /**
+     * @param {KeyboardEvent} e
+     */
+    function keyup(e) {
+        switch(e.key) {
+            case "PageUp":
+            case "ArrowUp":
+                wasArrowUpUp = true;
+                break;
+            case "PageDown":
+            case "ArrowDown":
+                wasArrowDownUp = true;
+                break;
+        }
+    }
+
     function next() {
+        if(!image.complete) return;
         if(page > (chapter.data.attributes[quality].length - 2)) return;
         $goto("./" + (parseInt(page) + 1));
+        document.scrollingElement.scrollTo({
+            top: 0
+        });
     }
 
     function prev() {
+        if(!image.complete) return;
         if(page < 2) return;
         $goto("./" + (page - 1));
+        document.scrollingElement.scrollTo({
+            top: 0
+        });
     }
 
     /**
@@ -84,7 +117,7 @@
     };
 
     function handleTouchMove(evt) {
-        if ( ! xDown || ! yDown ) {
+        if (!xDown || !yDown) {
             return;
         }
 
@@ -108,9 +141,41 @@
         xDown = null;
         yDown = null;  
     };
+
+    //for zoom detection
+    var px_ratio = window.devicePixelRatio || window.screen.availWidth / document.documentElement.clientWidth;
+
+    function isZooming(){
+        var newPx_ratio = window.devicePixelRatio || window.screen.availWidth / document.documentElement.clientWidth;
+        if(newPx_ratio != px_ratio){
+            px_ratio = newPx_ratio;
+            console.log("Zoomed to", px_ratio);
+        }
+    }
+
+    /** @type {number} */
+    var imageWidth;
+    /** @type {number} */
+    var imageHeight = Infinity;
+    /** @type {HTMLImageElement} */
+    var image;
+    var ratio = 0;
+    $: actualHeight = ratio > 1 ? document.body.clientHeight * ratio : document.body.clientHeight - 17;
+
+    /**
+     * @param {Event} e
+     */
+    function loaded(e) {
+        /** @type {HTMLImageElement}*/
+        var image = e.target;
+        imageWidth = image.naturalWidth;
+        imageHeight = image.naturalHeight;
+
+        ratio = imageHeight / imageWidth - 3;
+    }
 </script>
 
-<svelte:window on:keydown={keydown} />
+<svelte:window on:keydown={keydown} on:keyup={keyup} on:resize={isZooming} />
 
 <svelte:head>
     <title>{manga.title.en} Chapter {chapter.data.attributes.chapter} Page {page}</title>
@@ -120,7 +185,7 @@
     <a class="back" href={$url("../..")}>Back to chapter list</a>
 </div>
 
-<img draggable={false} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${atHome}/${quality}/${chapter.data.attributes.hash}/${chapter.data.attributes[quality][page - 1]}`} alt="Page {page} in chapter {chapter.data.attributes.chapter} of {manga.title.en}">
+<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${atHome}/${quality}/${chapter.data.attributes.hash}/${chapter.data.attributes[quality][page - 1]}`} alt="Page {page} in chapter {chapter.data.attributes.chapter} of {manga.title.en}">
 
 <div class="bottom">
     {#if page > 1}
