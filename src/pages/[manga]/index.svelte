@@ -1,7 +1,8 @@
 <script>
-    import { page, url } from "@roxi/routify/runtime/helpers";
-    import { Zip, ZipPassThrough } from "fflate";
-    import { prepareEpub } from "../../util/generateEpub";
+    import { url } from "@roxi/routify/runtime/helpers";
+    import Chapter from "../../components/chapter.svelte";
+    import { EpubGenerator } from "../../util/generateEpub";
+    import { CBZGenerator } from "../../util/generateCbz";
     // import * as streamSaver from "streamsaver";
 
     import request from "../../util/request";
@@ -29,83 +30,129 @@
 
     var progress = 0;
     var state = "idle";
-    var text = "Choose a chapter to view online or download EPUB";
+    const defaultText = "Choose a chapter to view online or download EPUB";
+    var text = defaultText;
     var pagesDone = 0;
     var totalPages = 0;
 
     $: progress = pagesDone / (totalPages || 1);
     $: if(totalPages) text = `Saving page ${pagesDone + 1} of ${totalPages}`;
 
-    var enc = new TextEncoder(); 
-    async function prepare(chapter) {
-        state = "active";
-        text = "Starting download of chapter " + chapter.data.attributes.chapter;
+    /**
+     * @type {EpubGenerator[]}
+     */
+    var queue = [];
+    var processing = null;
+    async function processQueue() {
+        if(processing) return;
+        processing = queue.shift();
+        if(!processing) return processing = null;
+        processing.opts.callback = (chapter, link, finished) => {
+            console.log(chapter, link, finished);
+        };
+        await processing.generate();
+        processing = null;
+        processQueue();
+    }
 
-        const { baseUrl } = await request("at-home/server/" + chapter.data.id);
-        const quality = "data";
+    const generators = {
+        epub: EpubGenerator,
+        cbz: CBZGenerator
+    }
+    const quality = "data";
 
-        const URLs = [];
-        const hashes = [];
-        for(const hash of chapter.data.attributes[quality]) {
-            URLs.push(`${baseUrl}/${quality}/${chapter.data.attributes.hash}/${hash}`);
-            hashes.push(hash);
-        }
-
-        text = "Found " + URLs.length + " pages";
-        totalPages += URLs.length;
-
-        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.data.attributes.chapter}.epub`, {
+    async function downloadSingle(chapter) {
+        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.data.attributes.chapter}.${format}`, {
             writableStrategy: undefined, // (optional)
             readableStrategy: undefined,  // (optional)
         });
 
-        const zip = await prepareEpub({
-            title: `${manga.title.en} ${chapter.data.attributes.chapter}`,
-            id: `https://manga.danbulant.eu/${mangaId}/${chapter.data.id}`,
+        const generator = new generators[format]({
             file,
-            chapter: chapter.data.attributes.chapter,
-            links: hashes,
-            updatedAt: chapter.data.attributes.updatedAt
+            id: chapter.data.id,
+            language: chapter.data.attributes.translatedLanguage,
+            quality,
+            updatedAt: chapter.data.attributes.updatedAt,
+            title: manga.title.en,
+            author: "Unknown",
+            chapters: [{
+                hash: chapter.data.attributes.hash,
+                id: chapter.data.id,
+                links: chapter.data.attributes[quality],
+                number: chapter.data.attributes.chapter,
+                volume: chapter.data.attributes.volume
+            }]
         });
 
-        for(var i = 0; i < URLs.length; i++) {
-            const url = URLs[i];
-            const hash = hashes[i];
-            const res = await fetch(url);
-            const image = new ZipPassThrough("OEBPS/" + hash);
-            zip.add(image);
-            image.push(new Uint8Array(await res.arrayBuffer()), true);
-            const textContent = new ZipPassThrough("OEBPS/" + i + ".xhtml");
-            zip.add(textContent);
-            textContent.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
-            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-            <head>
-                <title>Page ${i + 1}</title>
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-                <meta name="EPB-UUID" content=""/>
-            </head>
-            <body>
-                <img style="margin:auto;height:100%;" src="${hash}" />
-            </body>
-            </html>`), true);
-            pagesDone++;
-        }
-        
-        zip.end();
-        if(pagesDone === totalPages) {
-            text = "Done!";
-            state = "idle";
-            pagesDone = 0;
-            totalPages = 0;
+        console.log(generator);
+        queue.push(generator);
+        processQueue();
+    }
 
-            setTimeout(() => {
-                if(totalPages === 0) {
-                    text = "Choose a chapter to view online or download EPUB";
-                }
-            }, 3000);
+    var format = "cbz";
+    var selected = [];
+    function select(chapter) {
+        if(selected.includes(chapter)) {
+            selected.splice(selected.indexOf(chapter), 1);
+        } else {
+            selected.push(chapter);
+        }
+        selected = selected;
+        if(selected.length) {
+            text = `Selected ${selected.length} chapters`;
+        } else {
+            text = defaultText;
         }
     }
+    function downloadMulti() {
+        selected.sort((a, b) => a.data.attributes.chapter - b.data.attributes.chapter);
+        if(!selected.length) return;
+        if(selected.length === 1) {
+            downloadSingle(selected.shift());
+            selected = [];
+            return;
+        }
+        const file = streamSaver.createWriteStream(`${manga.title.en}.${format}`, {
+            writableStrategy: undefined, // (optional)
+            readableStrategy: undefined,  // (optional)
+        });
+        const generator = new generators[format]({
+            file,
+            quality,
+            id: window.location.toString(),
+            language: selected[0].data.attributes.translatedLanguage,
+            updatedAt: new Date,
+            title: manga.title.en,
+            author: "Unknown",
+            chapters: selected.map(chapter => ({
+                hash: chapter.data.attributes.hash,
+                id: chapter.data.id,
+                links: chapter.data.attributes[quality],
+                number: chapter.data.attributes.chapter,
+                volume: chapter.data.attributes.volume
+            }))
+        });
+
+        console.log(generator);
+        queue.push(generator);
+        selected = [];
+        processQueue();
+    }
+
+    /**
+     * @param {BeforeUnloadEvent} e
+     */
+    function beforeUnload(e) {
+        if(progress) {
+            e.preventDefault();
+            return "Downloads won't be saved if you exit this page before they're finished.";
+        }
+    }
+
+    $: console.log(format);
 </script>
+
+<svelte:window on:beforeUnload={beforeUnload} />
 
 <svelte:head>
     <title>Chapters of {manga.title.en}</title>
@@ -128,6 +175,18 @@
         </p>
     </div>
 
+    {#if queue.length > 0}
+        <p><i>{queue.length} downloads queued.</i></p>
+    {/if}
+
+    <div class="download">
+        <select name="format" bind:value={format} id="select-format">
+            <option value="cbz"><b>.cbz</b> Comic Book Zip</option>
+            <option value="epub"><b>.epub</b> Electronic publication</option>
+        </select>
+        <button disabled={!!progress && selected.length} on:click={downloadMulti}>Download</button>
+    </div>
+
     <p>
         <b>
             Do not close the tab when a download is in progress.
@@ -143,13 +202,7 @@
         <table>
             <tbody>
                 {#each chapters.results.filter(c => c.data.attributes.translatedLanguage === "en") as chapter} 
-                    <tr>
-                        <td class="no-wrap">{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
-                        <td class="no-wrap">Chapter {chapter.data.attributes.chapter}</td>
-                        <td>{chapter.data.attributes.title}</td>
-                        <td class="action no-wrap"><span on:click={() => prepare(chapter)}>Download</span></td>
-                        <td class="action no-wrap"><a href={$url("./" + chapter.data.id)} on:click|stopPropagation>View</a></td>
-                    </tr>
+                    <Chapter {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
                 {/each}
             </tbody>
         </table>
@@ -157,6 +210,18 @@
 </main>
 
 <style>
+    .download {
+        display: flex;
+        width: 100%;
+        margin-top: 5px;
+    }
+    .download select {
+        flex-grow: 1;
+        margin-inline: 5px;
+    }
+    .download button {
+        margin-inline: 5px;
+    }
     main {
         font-size: 1.1rem;
     }
@@ -169,34 +234,6 @@
     table {
         border-collapse: collapse;
         width: 100%;
-    }
-
-    tr {
-        border: 1px solid black;
-    }
-
-    tr:hover {
-        background: rgba(0,0,0,0.1);
-    }
-
-    td {
-        padding: 5px 5px;
-    }
-
-    td.action {
-        font-weight: bold;
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    td.action:hover {
-        text-decoration: underline;
-        color: rgb(0,100,200);
-    }
-
-    td.action a {
-        color: inherit;
     }
 
     .state {

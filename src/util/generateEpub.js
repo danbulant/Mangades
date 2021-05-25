@@ -1,131 +1,161 @@
 import { Zip, ZipPassThrough } from "fflate";
+import { BaseGenerator } from "./baseGenerator";
+import report from "./report";
 
 const enc = new TextEncoder();
 
 /**
- * @param {object} opts
- * @param {string[]} opts.links 
- * @param {WritableStream} opts.file
- * @param {number} opts.chapter
- * @param {string|Date} opts.updatedAt
- * @param {string} opts.id
+ * Handles epub generation
  */
-export async function prepareEpub(opts) {
-    const writer = opts.file.getWriter();
-    const zip = new Zip();
-    zip.ondata = (error, data, final) => {
-        if(error) {
-            console.error(error);
-            text = "Error: " + error.message;
-            state = "error";
+export class EpubGenerator extends BaseGenerator {
+    async generate() {
+        this.writer = this.opts.file.getWriter();
+        this.zip = new Zip();
+
+        this.zip.ondata = (error, data, final) => {
+            if(error) {
+                console.error(error);
+                if(this.opts.onerror) this.opts.onerror(error);
+            }
+            if(data) {
+                this.writer.write(data);
+            }
+            if(final) {
+                this.writer.close();
+            }
+        };
+
+        this.hashes = this.opts.chapters.map(t => t.links).flat();
+
+        this.mimetype();
+        this.container();
+        this.package();
+        this.toc();
+        
+        this.callback(); // signals the template is ready
+
+        for(const chapterI in this.opts.chapters) {
+            const chapter = this.opts.chapters[chapterI];
+            const baseUrl = await this.getBaseURL(chapter.id);
+            for(const i in chapter.links) {
+                this.callback(chapterI, i, false);
+                const hash = chapter.links[i];
+                const URL = `${baseUrl}/${this.opts.quality}/${chapter.hash}/${hash}`;
+                const start = performance.now();
+                const res = await this.fetchImage(URL);
+                const image = new ZipPassThrough("OEBPS/" + hash);
+                this.zip.add(image);
+                const data = new Uint8Array(await res.arrayBuffer());
+                const end = performance.now() - start;
+                report({
+                    bytes: data.byteLength,
+                    cached: res.headers.get("X-Cache") === "HIT",
+                    duration: end,
+                    success: Math.floor(res.status / 100) === 2,
+                    url: URL
+                });
+                image.push(data, true);
+                const textContent = new ZipPassThrough("OEBPS/" + i + ".xhtml");
+                this.zip.add(textContent);
+                textContent.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
+                <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+                <head>
+                    <title>Page ${i + 1}</title>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                    <meta name="EPB-UUID" content=""/>
+                </head>
+                <body>
+                    <img style="margin:auto;height:100%;" src="${hash}" />
+                </body>
+                </html>`), true);
+                this.callback(chapterI, i, true);
+            }
         }
-        if(data) {
-            writer.write(data);
-        }
-        if(final) {
-            writer.close();
-        }
-    };
 
-    const hashes = opts.links;
-    
-    const mimetype = new ZipPassThrough("mimetype");
-    zip.add(mimetype);
-    mimetype.push(enc.encode("application/epub+zip"), true);
+        this.zip.end();
+        this.callback(-1, -1, true);
+    }
 
-    const container = new ZipPassThrough("META-INF/container.xml");
-    zip.add(container);
-    container.push(enc.encode(`<?xml version="1.0" encoding="UTF-8" ?>
-    <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-    <rootfiles>
-    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
-    </rootfiles>
-    </container>`), true);
+    mimetype() {    
+        const mimetype = new ZipPassThrough("mimetype");
+        this.zip.add(mimetype);
+        mimetype.push(enc.encode("application/epub+zip"), true);
+    }
 
-    const opf = new ZipPassThrough("OEBPS/content.opf");
-    zip.add(opf);
-    opf.push(enc.encode(`<?xml version="1.0"?>
-    <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid">
+    container() {
+        const container = new ZipPassThrough("META-INF/container.xml");
+        this.zip.add(container);
+        container.push(enc.encode(`<?xml version="1.0" encoding="UTF-8" ?>
+        <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+        <rootfiles>
+        <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+        </rootfiles>
+        </container>`), true);
+    }
 
-    <metadata xmlns:opf="http://www.idpf.org/2007/opf"  xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:dcterms="http://purl.org/dc/terms/">
-    <dc:title>${opts.title}</dc:title>
-    <dc:language>en</dc:language>
-    <dc:creator>Unknown</dc:creator>
-    <dc:identifier id="bookid">${opts.id}</dc:identifier>
-    <dc:type>Image</dc:type>
+    package() {
+        const opf = new ZipPassThrough("OEBPS/content.opf");
+        this.zip.add(opf);
+        opf.push(enc.encode(`<?xml version="1.0"?>
+        <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid">
 
-    <meta property="dcterms:modified">${opts.updatedAt.toString().split("+")[0]}Z</meta>
-    <meta property="rendition:layout">pre-paginated</meta>
-    <meta property="rendition:orientation">portrait</meta>
-    <meta property="rendition:spread">landscape</meta>
-    </metadata>
+        <metadata xmlns:opf="http://www.idpf.org/2007/opf"  xmlns:dc="http://purl.org/dc/elements/1.1/"
+                xmlns:dcterms="http://purl.org/dc/terms/">
+        <dc:title>${this.opts.title}</dc:title>
+        <dc:language>${this.opts.language || "en"}</dc:language>
+        <dc:creator>${this.opts.author}</dc:creator>
+        <dc:identifier id="bookid">${this.opts.id}</dc:identifier>
+        <dc:type>Image</dc:type>
 
-    <manifest>
-    <item id="fallback" href="fallback.xhtml" media-type="application/xhtml+xml" />
-    ${hashes.map((t, i) => `    <item id="i${i}" href="${t}" fallback="fallback" media-type="image/${t.substr(t.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : "png"}"/>`).join("\n")}
-    ${hashes.map((t, i) => `    <item id="p${i}" href="${i}.xhtml"  media-type="application/xhtml+xml" />`).join("\n")}
+        <meta property="dcterms:modified">${this.opts.updatedAt.toString().split("+")[0]}Z</meta>
+        <meta property="rendition:layout">pre-paginated</meta>
+        <meta property="rendition:orientation">portrait</meta>
+        <meta property="rendition:spread">landscape</meta>
+        </metadata>
 
-    <item id="ncxtoc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
-    </manifest>
+        <manifest>
+        ${this.hashes.map((t, i) => `    <item id="i${i}" href="${t}" fallback="fallback" media-type="image/${t.substr(t.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : t.substr(t.lastIndexOf(".") + 1)}"/>`).join("\n")}
+        ${this.hashes.map((t, i) => `    <item id="p${i}" href="${i}.xhtml"  media-type="application/xhtml+xml" />`).join("\n")}
 
-    <spine toc="ncxtoc">
-    ${hashes.map((t, i) => `    <itemref idref="p${i}" linear="yes" />`).join("\n")}
-    <itemref idref="fallback" linear="no" />
-    </spine>
+        <item id="ncxtoc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        </manifest>
 
-    </package>`), true);
+        <spine toc="ncxtoc">
+        ${this.hashes.map((t, i) => `    <itemref idref="p${i}" linear="yes" />`).join("\n")}
+        <itemref idref="fallback" linear="no" />
+        </spine>
 
-    const ncx = new ZipPassThrough("OEBPS/toc.ncx");
-    zip.add(ncx);
-    ncx.push(enc.encode(`<?xml version="1.0" encoding="utf-8"?>
-    <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
-    <ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-    <head>
-    <meta name="dtb:depth" content="1"/>
-    <meta name="dtb:totalPageCount" content="0"/>
-    <meta name="dtb:maxPageNumber" content="0"/>
-    </head>
-    <docTitle>
-    <text>${opts.title}</text>
-    </docTitle>
-    <docAuthor>
-    <text>Unknown</text>
-    </docAuthor>
+        </package>`), true);
+    }
 
-    <navMap>
-    ${hashes.map((t, i) => `
-        <navPoint id="p${i}" playOrder="${i + 1}">
-            <navLabel>
-                <text>${opts.title} ${i}</text>
-            </navLabel>
-            <content src="${i}.xhtml"/>
-        </navPoint>
-    `).join("\n")}
-    </navMap>
-    </ncx>`), true);
+    toc() {
+        const ncx = new ZipPassThrough("OEBPS/toc.ncx");
+        this.zip.add(ncx);
+        ncx.push(enc.encode(`<?xml version="1.0" encoding="utf-8"?>
+        <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+        <ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+        <head>
+        <meta name="dtb:depth" content="1"/>
+        <meta name="dtb:totalPageCount" content="0"/>
+        <meta name="dtb:maxPageNumber" content="0"/>
+        </head>
+        <docTitle>
+        <text>${this.opts.title}</text>
+        </docTitle>
+        <docAuthor>
+        <text>${this.opts.author}</text>
+        </docAuthor>
 
-    const fallback = new ZipPassThrough("OEBPS/fallback.xhtml");
-    zip.add(fallback);
-    fallback.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
-    <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-    <head>
-    <title>${opts.title}</title>
-    </head>
-    <body>
-    <h2>This book cannot be opened on this device or using this program</h2>
-    <p>We're sorry</p>
-
-    <nav epub:type="toc">
-        <h1>Chapter list</h1>
-        <ol>
-            <li>
-                <a href="p0.xhtml">Chapter ${opts.chapter}</a>
-            </li>
-        </ol>
-    </nav>
-    </body>
-    </html>`), true);
-
-    return zip;
+        <navMap>
+        ${this.opts.chapters.map((t, i) => t.links.map((link, i) => `
+            <navPoint id="p${i}" playOrder="${i + 1}">
+                <navLabel>
+                    <text>${this.opts.title} Chapter ${t.number} Page ${i + 1}</text>
+                </navLabel>
+                <content src="${i}.xhtml"/>
+            </navPoint>
+        `)).flat().join("\n")}
+        </navMap>
+        </ncx>`), true);
+    }
 }

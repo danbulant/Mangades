@@ -1,4 +1,5 @@
-const base = "https://cors-anywhere.danbulant.workers.dev/?https://api.mangadex.org/";
+export const proxy = "https://cors-anywhere.danbulant.workers.dev/?";
+export const base = proxy + "https://api.mangadex.org/";
 
 function request(endpoint, query, type = "GET", body) {
     return fetch(base + endpoint + (query ? "?" + query : ""), {
