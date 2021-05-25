@@ -16,6 +16,8 @@ async function report(body) {
         headers: {
             "Content-Type": "application/json"
         },
+        credentials: "omit",
+        mode: "no-cors",
         body: body ? JSON.stringify(body) : undefined
     });
     return await resp.json();
