@@ -67,7 +67,7 @@ export class BaseGenerator {
      */
     callback(chapter = -1, link = -1, finished = false) {
         if(this.opts.callback) {
-            this.opts.callback(chapter, link, finished);
+            this.opts.callback(chapter, parseInt(link), finished);
         }
     }
 }

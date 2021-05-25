@@ -6,9 +6,12 @@
     export var chapter;
     export var selected;
     export var disabledDownload = false;
+    export var progress = 0;
+
+    $: if(progress !== 0) console.log("chapter", chapter.data.attributes.chapter, progress * 100);
 </script>
 
-<tr on:click={() => dispatch("select")} class:selected={selected}>
+<tr on:click={() => dispatch("select")} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
     <td class="no-wrap">{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
     <td class="no-wrap">Chapter {chapter.data.attributes.chapter}</td>
     <td>{chapter.data.attributes.title}</td>
@@ -19,6 +22,8 @@
 <style>
     tr {
         border: 1px solid black;
+        position: relative;
+        transition: background-image 0.3s;
     }
 
     tr.selected {

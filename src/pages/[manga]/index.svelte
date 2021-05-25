@@ -3,9 +3,8 @@
     import Chapter from "../../components/chapter.svelte";
     import { EpubGenerator } from "../../util/generateEpub";
     import { CBZGenerator } from "../../util/generateCbz";
-    // import * as streamSaver from "streamsaver";
-
     import request from "../../util/request";
+    import { BaseGenerator } from "../../util/baseGenerator";
 
     export var scoped;
 
@@ -17,7 +16,7 @@
     $: relationships = scoped.mangaRelationships;
 
     async function getMangaChapters(id) {
-        const data = await request("manga/" + id + "/feed?translatedLanguage[]=en");
+        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en");
         data.results.sort((a, b) => a.data.attributes.chapter - b.data.attributes.chapter);
         return data;
     }
@@ -39,19 +38,37 @@
     $: if(totalPages) text = `Saving page ${pagesDone + 1} of ${totalPages}`;
 
     /**
-     * @type {EpubGenerator[]}
+     * @type {BaseGenerator[]}
      */
     var queue = [];
+    /**
+     * @type {BaseGenerator}
+     */
     var processing = null;
+    /**
+     * @type {Map<string, number>}
+     */
+    var progressMap = new Map();
     async function processQueue() {
         if(processing) return;
         processing = queue.shift();
         if(!processing) return processing = null;
-        processing.opts.callback = (chapter, link, finished) => {
+        state = "active";
+        processing.opts.callback = async (chapter, link, finished) => {
             console.log(chapter, link, finished);
+            var cs = await chapters;
+            var related = cs.results.filter(t => processing.opts.chapters.find(c => t.data.id === c.id));
+            var done = processing.opts.chapters.filter(t => t.number < chapter);
+            var linkCount = related.map(t => t.data.attributes[quality].length).reduce((a, b) => a + b);
+            progress = (done.reduce((a, b) => (a.links || []).length + (b.links || []).length, 0) + link + 1) / linkCount;
+            progressMap.set(processing.opts.chapters[chapter].number, link + 1);
+            progressMap = progressMap;
         };
         await processing.generate();
         processing = null;
+        progressMap = new Map();
+        progress = 0;
+        state = "idle";
         processQueue();
     }
 
@@ -184,7 +201,7 @@
             <option value="cbz"><b>.cbz</b> Comic Book Zip</option>
             <option value="epub"><b>.epub</b> Electronic publication</option>
         </select>
-        <button disabled={!!progress && selected.length} on:click={downloadMulti}>Download</button>
+        <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
     </div>
 
     <p>
@@ -196,13 +213,13 @@
     {#await chapters}
         Loading chapters...
     {:then chapters}
-        {#if chapters.results.filter(c => c.data.attributes.translatedLanguage === "en").length === 0}
+        {#if chapters.results.length === 0}
             <p>No chapters found.</p>
         {/if}
         <table>
             <tbody>
-                {#each chapters.results.filter(c => c.data.attributes.translatedLanguage === "en") as chapter} 
-                    <Chapter {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
+                {#each chapters.results as chapter, i} 
+                    <Chapter progress={(progressMap.get(chapter.data.attributes.chapter) || 0) / chapter.data.attributes[quality].length} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
                 {/each}
             </tbody>
         </table>

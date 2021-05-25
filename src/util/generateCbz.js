@@ -22,7 +22,7 @@ export class CBZGenerator extends BaseGenerator {
 
         this.hashes = this.opts.chapters.map(t => t.links).flat();
 
-        const chapterCountLength = this.opts.chapters.reduce((a, b) => Math.max(a.number, b.number)).number.toString().length;
+        const chapterCountLength = this.opts.chapters.reduce((a, b) => Math.max(a.number, b.number), 0).toString().length;
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
             const baseUrl = await this.getBaseURL(chapter.id);
