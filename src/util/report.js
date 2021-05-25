@@ -10,7 +10,7 @@ export const base = "https://api.mangadex.network/";
  * @param {boolean} body.cached
  */
 async function report(body) {
-    const resp = await fetch(base + "report", {
+    await fetch(base + "report", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -19,7 +19,6 @@ async function report(body) {
         mode: "no-cors",
         body: body ? JSON.stringify(body) : undefined
     });
-    return await resp.json();
 }
 
 export default report;
