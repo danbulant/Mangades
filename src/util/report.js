@@ -10,7 +10,6 @@ export const base = "https://api.mangadex.network/";
  * @param {boolean} body.cached
  */
 async function report(body) {
-    body.duration = parseInt(body.duration);
     const resp = await fetch(base + "report", {
         method: "POST",
         headers: {
