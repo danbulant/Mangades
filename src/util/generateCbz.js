@@ -31,14 +31,16 @@ export class CBZGenerator extends BaseGenerator {
                 this.callback(chapterI, i, false);
                 const hash = chapter.links[i];
                 const URL = `${baseUrl}/${this.opts.quality}/${chapter.hash}/${hash}`;
+                const start = performance.now();
                 const res = await this.fetchImage(URL);
                 const image = new ZipPassThrough(`${this.opts.title} ${chapter.number.toString().padStart(chapterCountLength, "0")}/${i.toString().padStart(imageCountLength, "0")}.${hash.substr(hash.lastIndexOf(".") + 1)}`);
                 this.zip.add(image);
                 const data = new Uint8Array(await res.arrayBuffer());
+                const end = performance.now() - start;
                 report({
                     bytes: data.byteLength,
                     cached: res.headers.get("X-Cache") === "HIT",
-                    duration: performance.getEntriesByName(URL)[0].duration,
+                    duration: end,
                     success: Math.floor(res.status / 100) === 2,
                     url: URL
                 });

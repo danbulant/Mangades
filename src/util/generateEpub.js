@@ -41,14 +41,16 @@ export class EpubGenerator extends BaseGenerator {
                 this.callback(chapterI, i, false);
                 const hash = chapter.links[i];
                 const URL = `${baseUrl}/${this.opts.quality}/${chapter.hash}/${hash}`;
+                const start = performance.now();
                 const res = await this.fetchImage(URL);
                 const image = new ZipPassThrough("OEBPS/" + hash);
                 this.zip.add(image);
                 const data = new Uint8Array(await res.arrayBuffer());
+                const end = performance.now() - start;
                 report({
                     bytes: data.byteLength,
                     cached: res.headers.get("X-Cache") === "HIT",
-                    duration: performance.getEntriesByName(URL)[0].duration,
+                    duration: end,
                     success: Math.floor(res.status / 100) === 2,
                     url: URL
                 });
