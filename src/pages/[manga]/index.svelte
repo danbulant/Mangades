@@ -29,7 +29,7 @@
 
     var progress = 0;
     var state = "idle";
-    const defaultText = "Choose a chapter to view online or download EPUB";
+    const defaultText = "Choose a chapter to view online or download";
     var text = defaultText;
     var pagesDone = 0;
     var totalPages = 0;
