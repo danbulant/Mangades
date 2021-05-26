@@ -3,7 +3,7 @@
 	import request from "../util/request";
     import ratelimit from "../util/ratelimit";
     import { goto, url } from '@roxi/routify/runtime/helpers';
-import MultiSelect from '../components/multiSelect.svelte';
+	import MultiSelect from '../components/multiSelect.svelte';
     
 	var name = $params.search;
     $: {
@@ -42,7 +42,12 @@ import MultiSelect from '../components/multiSelect.svelte';
 		return res;
     }
 
-	$: result = ratelimit(search, name, filters);
+	function update(name, filters) {
+		result = ratelimit(search, name, filters);
+	}
+
+	var result;
+	$: update(name, filters);
 
 	var scrollSearch = null;
 	/**
