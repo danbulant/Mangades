@@ -56,6 +56,7 @@
         state = "active";
         processing.opts.callback = async (chapter, link, finished) => {
             console.log(chapter, link, finished);
+            if(chapter === -1 || link === -1) return;
             var cs = await chapters;
             var related = cs.results.filter(t => processing.opts.chapters.find(c => t.data.id === c.id));
             var done = processing.opts.chapters.filter(t => t.number < chapter);

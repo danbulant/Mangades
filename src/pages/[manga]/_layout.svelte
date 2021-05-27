@@ -15,5 +15,9 @@
 {#await mangaData}
     loading...
 {:then manga}
-    <slot scoped={({ manga: manga.data.attributes, mangaRelationships: manga.relationships, id: manga.data.id })} />
+    {#if manga}
+        <slot scoped={({ manga: manga.data.attributes, mangaRelationships: manga.relationships, id: manga.data.id })} />
+    {:else}
+        Manga not found.
+    {/if}
 {/await}
