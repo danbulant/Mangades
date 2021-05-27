@@ -21,6 +21,7 @@
         border: 1px solid black;
         position: relative;
         transition: background-image 0.3s;
+        background-repeat: no-repeat;
     }
 
     tr.selected {
