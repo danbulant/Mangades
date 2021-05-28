@@ -33,7 +33,8 @@ export class CBZGenerator extends BaseGenerator {
                 const URL = `${baseUrl}/${this.opts.quality}/${chapter.hash}/${hash}`;
                 const start = performance.now();
                 const res = await this.fetchImage(URL);
-                const image = new ZipPassThrough(`${this.opts.title} ${chapter.number.toString().padStart(chapterCountLength, "0")}/${i.toString().padStart(imageCountLength, "0")}.${hash.substr(hash.lastIndexOf(".") + 1)}`);
+                const chapterText = chapter.number.toString().padStart(chapterCountLength, "0");
+                const image = new ZipPassThrough(`${this.opts.title} ${chapterText}/${chapterText} page ${i.toString().padStart(imageCountLength, "0")}.${hash.substr(hash.lastIndexOf(".") + 1)}`);
                 this.zip.add(image);
                 const data = new Uint8Array(await res.arrayBuffer());
                 const end = performance.now() - start;
@@ -45,6 +46,7 @@ export class CBZGenerator extends BaseGenerator {
                     url: URL
                 });
                 image.push(data, true);
+                this.callback(chapterI, i, true);
             }
         }
         this.zip.end();
