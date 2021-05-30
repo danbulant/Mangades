@@ -36,13 +36,13 @@ export class EpubGenerator extends BaseGenerator {
 
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
-            const baseUrl = await this.getBaseURL(chapter.id);
+            if(!chapter.baseUrl) chapter.baseUrl = await this.getBaseURL(chapter.id);
             for(const i in chapter.links) {
                 this.callback(chapterI, i, false);
                 const hash = chapter.links[i];
-                const URL = `${baseUrl}/${this.opts.quality}/${chapter.hash}/${hash}`;
+                const URL = `${this.opts.quality}/${chapter.hash}/${hash}`;
                 const start = performance.now();
-                const res = await this.fetchImage(URL);
+                const res = await this.fetchImage(URL, chapter);
                 const image = new ZipPassThrough("OEBPS/" + hash);
                 this.zip.add(image);
                 const data = new Uint8Array(await res.arrayBuffer());
@@ -52,7 +52,7 @@ export class EpubGenerator extends BaseGenerator {
                     cached: res.headers.get("X-Cache") === "HIT",
                     duration: end,
                     success: Math.floor(res.status / 100) === 2,
-                    url: URL
+                    url: `${chapter.baseUrl}/${URL}`
                 });
                 image.push(data, true);
                 const textContent = new ZipPassThrough("OEBPS/" + i + ".xhtml");

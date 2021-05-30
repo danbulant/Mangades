@@ -59,10 +59,11 @@
             if(chapter === -1 || link === -1) return;
             var cs = await chapters;
             var related = cs.results.filter(t => processing.opts.chapters.find(c => t.data.id === c.id));
-            var done = processing.opts.chapters.filter(t => t.number < chapter);
+            var done = processing.opts.chapters.filter(t => parseFloat(t.number) < parseFloat(processing.opts.chapters[chapter].number));
             var linkCount = related.map(t => t.data.attributes[quality].length).reduce((a, b) => a + b);
+            console.log(related, done, done.reduce((a, b) => (a.links || []).length + (b.links || []).length, 0), link + 1, linkCount);
             progress = (done.reduce((a, b) => (a.links || []).length + (b.links || []).length, 0) + link + 1) / linkCount;
-            progressMap.set(processing.opts.chapters[chapter].number, link + 1);
+            progressMap.set(processing.opts.chapters[chapter].id, link + 1);
             progressMap = progressMap;
         };
         await processing.generate();
@@ -220,7 +221,7 @@
         <table>
             <tbody>
                 {#each chapters.results as chapter, i} 
-                    <Chapter progress={(progressMap.get(chapter.data.attributes.chapter) || 0) / chapter.data.attributes[quality].length} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
+                    <Chapter progress={(progressMap.get(chapter.data.id) || 0) / chapter.data.attributes[quality].length} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
                 {/each}
             </tbody>
         </table>

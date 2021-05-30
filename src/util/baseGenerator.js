@@ -6,9 +6,12 @@
  * @property {number?} volume
  * @property {string[]} links
  * @property {string} hash
+ * @property {string} baseUrl
  */
 
 import request, { proxy } from "./request";
+
+const RETRY_LIMIT = 10;
 
 /**
  * Base generator, to be extended
@@ -17,7 +20,6 @@ export class BaseGenerator {
     /**
      * 
      * @param {object} opts
-     * @param {string} opts.baseUrl
      * @param {string} opts.quality
      * @param {WritableStream} opts.file
      * @param {string} opts.title
@@ -47,15 +49,24 @@ export class BaseGenerator {
 
     /**
      * @param {string} url 
+     * @param {Chapter} chapter
      * @returns {Promise<Response>}
      */
-    async fetchImage(url) {
+    async fetchImage(url, chapter) {
         var res;
         try {
-            res = await fetch(url);
+            res = await fetch(chapter.baseUrl + "/" + url);
         } catch(e) {
             console.error(e);
-            res = await fetch(proxy + url);
+            res = await fetch(proxy + chapter.baseUrl + "/" + url);
+        }
+        if(Math.floor(res.status / 100) !== 2) {
+            for(var i = 0; i < RETRY_LIMIT; i++) {
+                chapter.baseUrl = await this.getBaseURL(chapter);
+                res = await fetch(chapter.baseUrl + "/" + url);
+                if(Math.floor(res.status / 100) === 2) return res;
+            }
+            throw new Error("Retry limit reached");
         }
         return res;
     }
