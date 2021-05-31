@@ -1,4 +1,4 @@
-export const proxy = "https://cors-anywhere.danbulant.workers.dev/?";
+export const proxy = "https://cors-anywhere.danbulant.eu/?";
 export const base = proxy + "https://api.mangadex.org/";
 
 function request(endpoint, query, type = "GET", body) {
