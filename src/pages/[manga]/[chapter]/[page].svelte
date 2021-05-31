@@ -179,6 +179,7 @@
 
 <svelte:head>
     <title>{manga.title.en} Chapter {chapter.data.attributes.chapter} Page {page}</title>
+	<meta name="description" value="Read page {page} of chapter {chapter.data.attributes.chapter} of {manga.title.en} online. Free of charge and ads." />
 </svelte:head>
 
 <div class="top">

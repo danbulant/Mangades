@@ -175,6 +175,7 @@
 
 <svelte:head>
     <title>Chapters of {manga.title.en}</title>
+	<meta name="description" value="Read {manga.title.en} online, or download it as EPUB or CBZ file. Free of charge and ads." />
 </svelte:head>
 
 <main>
