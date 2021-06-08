@@ -227,6 +227,8 @@
             </tbody>
         </table>
     {/await}
+	
+	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. Website is open source, and I don't claim any copyright on the publications.</p>
 </main>
 
 <style>
