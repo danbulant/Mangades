@@ -108,7 +108,7 @@
 <svelte:window on:scroll={scroll} />
 
 <svelte:head>
-	<title>Mangadex search</title>
+	<title>Mangadex search & downloader</title>
 	<meta name="description" value="Read manga from Mangadex online, or download it as EPUB or CBZ file to read it on your e-reader." />
 </svelte:head>
 
