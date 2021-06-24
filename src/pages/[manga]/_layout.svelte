@@ -13,7 +13,7 @@
     $: mangaData = getManga(manga);
     console.log(mangaData);
 
-    const blocked = ["227e3f72-863f-46f9-bafe-c43104ca29ee"];
+    const blocked = ["227e3f72-863f-46f9-bafe-c43104ca29ee", "b0b721ff-c388-4486-aa0f-c2b0bb321512];
 </script>
 <svelte:head>
     {#if blocked.includes(manga)}
