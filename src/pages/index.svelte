@@ -118,7 +118,17 @@
 	<p>Wondering why this downgrade? My main site was taken down 3 times for copyright infringement because of this site, even though I wasn't hosting anything. The webhosting people weren't understanding at all and just kept taking down my site. Comeso (the company that was sending copyright infringement emails) didn't reply to my attempts to contact them using the email they provided or the website they sent. They also sent few invalid copyright infringement emails, yet my webhosting still took my site down for them. I wasn't using them for this page anyway, so they took down basically everything else except this site (good job boys).</p>
 	<p>I disabled search engine indexing, so google shouldn't show results of manga directly but just link to this page. Search functionality got removed and instead you need to send the URL itself, which should prevent automatic scanners. I'm sorry, please tell Comeso and Webglobe (the webhoster) to not report websites that don't break copyright infringement. Thank you.</p>
 	
+	<hr>
+	
 	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. All of the site's requests are done client side, my servers aren't sharing any manga data. Website is open source, and I don't claim any copyright on the publications.</p>
+
+	<hr>
+
+	<b>Shameless plug:</b>
+
+	<p>
+		Be sure to check out my <a href="https://danbulant.eu">main site</a>, and my game <a href="https://heaventaker.danbulant.eu/">Heaventaker</a>.
+	</p>
 </main>
 
 <style>
