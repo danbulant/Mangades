@@ -115,11 +115,15 @@
 		<a href="https://mangadex.org">Mangadex.org</a>
 	</div>
 
+	
 	<p>Wondering why this downgrade? My main site was taken down 3 times for copyright infringement because of this site, even though I wasn't hosting anything. The webhosting people weren't understanding at all and just kept taking down my site. Comeso (the company that was sending copyright infringement emails) didn't reply to my attempts to contact them using the email they provided or the website they sent. They also sent few invalid copyright infringement emails, yet my webhosting still took my site down for them. I wasn't using them for this page anyway, so they took down basically everything else except this site (good job boys).</p>
 	<p>I disabled search engine indexing, so google shouldn't show results of manga directly but just link to this page. Search functionality got removed and instead you need to send the URL itself, which should prevent automatic scanners. I'm sorry, please tell Comeso and Webglobe (the webhoster) to not report websites that don't break copyright infringement. Thank you.</p>
+	<hr>
+
+	<p>This site works by using Mangadex API <i>from your browser</i>, and loading or downloading the manga directly from MD@H, without using my servers (so I don't host any content seen here, nor can I delete it). The whole site is client side only (it runs in your browser). I cannot delete any content (images or text), only hide it from this specific site - but there are tons of other sites, and anybody with decent coding skills can clone this page and remove the rule hiding the content (this page is open source).</p>
 	
 	<hr>
-	
+
 	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. All of the site's requests are done client side, my servers aren't sharing any manga data. Website is open source, and I don't claim any copyright on the publications.</p>
 
 	<hr>
@@ -128,6 +132,12 @@
 
 	<p>
 		Be sure to check out my <a href="https://danbulant.eu">main site</a>, and my game <a href="https://heaventaker.danbulant.eu/">Heaventaker</a>.
+	</p>
+
+	<hr>
+	
+	<p>
+		Website's source code available on <b><a href="https://github.com/danbulant/mangades">GitHub</a></b> under GPLv3. Hosted using CloudFlare Pages.
 	</p>
 </main>
 
