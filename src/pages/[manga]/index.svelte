@@ -5,6 +5,7 @@
     import { CBZGenerator } from "../../util/generateCbz";
     import request from "../../util/request";
     import { BaseGenerator } from "../../util/baseGenerator";
+    import { arraysEqual } from "../../util/arrays";
 
     export var scoped;
 
@@ -168,7 +169,23 @@
         }
     }
 
-    $: console.log(format);
+    var copyrightOpen = false;
+
+    function selectAll() {
+        chapters.then(res => {
+            var chapters = res.results;
+            if(arraysEqual(selected, chapters)) {
+                selected = [];
+            } else {
+                selected = chapters.slice();
+            }
+            if(selected.length) {
+                text = `Selected ${selected.length} chapters`;
+            } else {
+                text = defaultText;
+            }
+        });
+    }
 </script>
 
 <svelte:window on:beforeUnload={beforeUnload} />
@@ -181,9 +198,21 @@
 <main>
     <h1>{manga.title.en}</h1>
 
-    <div class="linklist">
-        <a href={$url("..")}>Go back to search page</a>
+    <div class="flex">
+        <div class="linklist">
+            <a href={$url("..")}>Go back to search page</a>
+        </div>
+        <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
     </div>
+
+    {#if copyrightOpen}
+        <p class="copyright">
+            Open <a href="https://mangadex.org/title/{mangaId}">Mangadex.org page of this manga</a>, select MORE and click REPORT. I cannot delete the content, even if you report it to this website's hosting, as this is just one of many clients to mangadex.
+            <br>
+            <br>
+            In case of reports, I can just block the content from being loaded in this page, but that doesn't mean it's deleted nor that any other client can't access it. And this website is smaller than mangadex, so it doesn't make sense to bother yourself with reporting it to this site when you can report it to one and have it removed from more sites, including this one.
+        </p>
+    {/if}
 
     <br>
 
@@ -207,11 +236,16 @@
         <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
     </div>
 
-    <p>
-        <b>
-            Do not close the tab when a download is in progress.
-        </b>
-    </p>
+    <div class="flex">
+        <p>
+            <b>
+                Do not close the tab when a download is in progress.
+            </b>
+        </p>
+        <button on:click={selectAll}>
+            Select all
+        </button>
+    </div>
 
     {#await chapters}
         Loading chapters...
@@ -229,9 +263,32 @@
     {/await}
 	
 	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. Website is open source, and I don't claim any copyright on the publications.</p>
+    <br>
 </main>
 
 <style>
+    .flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .copyright {
+        margin-block-start: 0;
+        margin-block-end: 0;
+        padding: 10px;
+        background: rgb(214, 214, 214);
+        border-radius: 5px 0 5px 5px;
+    }
+    .copyright-header {
+        background: rgb(214, 214, 214);
+        padding: 10px;
+        border-radius: 5px;
+        user-select: none;
+        cursor: pointer;
+    }
+    .copyright-header-active {
+        border-radius: 5px 5px 0 0;
+    }
     .download {
         display: flex;
         width: 100%;

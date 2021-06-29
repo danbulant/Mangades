@@ -7,9 +7,25 @@
     export var selected;
     export var disabledDownload = false;
     export var progress = 0;
+
+    /**
+     * @param {MouseEvent} e
+     */
+    function click(e) {
+        dispatch("select", e);
+    }
+
+    /**
+     * @param {MouseEvent} e
+     */
+    function mouseenter(e) {
+        if(e.buttons & 1) {
+            dispatch("select");
+        }
+    }
 </script>
 
-<tr on:click={() => dispatch("select")} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
+<tr on:mouseenter={mouseenter} on:mousedown={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
     <td class="no-wrap">{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
     <td class="no-wrap">{chapter.data.attributes.chapter ? "Chapter " + chapter.data.attributes.chapter : ""}</td>
     <td>{chapter.data.attributes.title}</td>
@@ -22,6 +38,7 @@
         position: relative;
         transition: background-image 0.3s;
         background-repeat: no-repeat;
+        user-select: none;
     }
 
     tr.selected {
@@ -44,6 +61,8 @@
         text-decoration: none;
         cursor: pointer;
         user-select: none;
+        text-align: right;
+        padding-right: 10px;
     }
 
     td.action:hover {

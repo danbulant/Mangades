@@ -5,12 +5,13 @@
     import { goto, url } from '@roxi/routify/runtime/helpers';
 	import MultiSelect from '../components/multiSelect.svelte';
     
-	var name = $params.search;
-    $: {
-        const url = new URL(window.location.toString());
-        url.searchParams.set("search", name || "");
-        history.replaceState(history.state, "", url.toString());
-    }
+	var name = "";
+	// var name = $params.search;
+    // $: {
+    //     const url = new URL(window.location.toString());
+    //     url.searchParams.set("search", name || "");
+    //     history.replaceState(history.state, "", url.toString());
+    // }
     /**
      * Searches for results
      * @param {string} title
@@ -83,25 +84,14 @@
 		sortValue: "desc"
 	};
 
-	const options = {
-		contentRating: {
-			safe: "Safe",
-			suggestive: "Suggestive",
-			erotica: "Erotica",
-			pornographic: "Pornographic"
-		},
-		demographic: {
-			shounen: "Shounen",
-			shoujo: "Shoujo",
-			josei: "Josei",
-			none: "None"
-		},
-		status: {
-			ongoing: "Ongoing",
-			completed: "Completed",
-			hiatus: "Hiatus - Paused",
-			cancelled: "Cancelled"
+	function open() {
+		var id = name;
+		if(name.startsWith("https://mangadex.org/title")) {
+			id = name.substr("https://mangadex.org/title".length);
+		} else if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(name)) {
+			return alert("You provided invalid ID or link. Make sure you copy the full URL from mangadex.org title page");
 		}
+		$goto("./" + id);
 	}
 </script>
 
@@ -114,79 +104,21 @@
 
 <main>
 
-	<h1>MANGADEX</h1>
-	<input type="text" bind:value={name}>
-
-	<div class="filters">
-		<div class="grow">
-			<label for="content-rating">Content rating</label>
-			<MultiSelect id="content-rating" bind:value={filters.contentRating} options={options.contentRating} />
-		</div>
-		<div class="grow">
-			<label for="demographic">Demographic</label>
-			<MultiSelect id="demographic" bind:value={filters.demographic} options={options.demographic} />
-		</div>
-		<div class="grow">
-			<label for="status">Manga Status</label>
-			<MultiSelect id="status" bind:value={filters.status} options={options.status} />
-		</div>
-		<p style="margin: 0;"><i>Sorts currently don't work (mangadex shows the same results).</i></p>
-		<div class="flex">
-			<label for="sort">Sort by:</label>
-			<select name="sort" id="sort" class="flex-grow" bind:value={filters.sort}>
-				<option value="createdAt">Creation date</option>
-				<option value="updatedAt">Update date</option>
-			</select>
-			<select name="sort-type" id="sort-type" class="flex-grow" bind:value={filters.sortValue}>
-				<option value="asc">Ascending</option>
-				<option value="desc">Descending</option>
-			</select>
-		</div>
+	<h1>miniMANGADEX</h1>
+	<div class="flex">
+		<input type="text" placeholder="Enter UUID or URL of mangadex.org manga" bind:value={name}>
+		<button on:click={open}>Go</button>
 	</div>
 
-	{#await result}
-		Loading...
-	{:then result}
-		<div class="flex">
-			<table>
-				<tr>
-					<td>
-						Showing results:
-					</td>
-					<td class="value">
-						{result.results.length}
-					</td>
-				</tr>
-				<tr>
-					<td>
-						Total results:
-					</td>
-					<td class="value">
-						{result.total}
-					</td>
-				</tr>
-			</table>
-			<div>
-				<button on:click={() => randomManga()} disabled={randomMangaLoading}>Random</button>
-			</div>
-		</div>
-		<ul>
-			{#each result.results as manga}
-				<li>
-                    <a href={$url("./" + manga.data.id)}>
-                        {manga.data.attributes.title.en}
-                    </a>
-				</li>
-			{/each}
-		</ul>
+	<div class="flex">
+		<button on:click={randomManga} disabled={randomMangaLoading}>Random</button>
+		<a href="https://mangadex.org">Mangadex.org</a>
+	</div>
 
-		{#if result.results.length < result.total}
-			<p>Loading next manga...</p>
-		{/if}
-		<p>You got the end of the list.</p>
-	{/await}
+	<p>Wondering why this downgrade? My main site was taken down 3 times for copyright infringement because of this site, even though I wasn't hosting anything. The webhosting people weren't understanding at all and just kept taking down my site. Comeso (the company that was sending copyright infringement emails) didn't reply to my attempts to contact them using the email they provided or the website they sent. They also sent few invalid copyright infringement emails, yet my webhosting still took my site down for them. I wasn't using them for this page anyway, so they took down basically everything else except this site (good job boys).</p>
+	<p>I disabled search engine indexing, so google shouldn't show results of manga directly but just link to this page. Search functionality got removed and instead you need to send the URL itself, which should prevent automatic scanners. I'm sorry, please tell Comeso and Webglobe (the webhoster) to not report websites that don't break copyright infringement. Thank you.</p>
 	
-	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. Website is open source, and I don't claim any copyright on the publications.</p>
+	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. All of the site's requests are done client side, my servers aren't sharing any manga data. Website is open source, and I don't claim any copyright on the publications.</p>
 </main>
 
 <style>
