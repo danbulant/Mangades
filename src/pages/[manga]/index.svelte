@@ -15,6 +15,8 @@
     $: manga = scoped.manga;
     var relationships = scoped.mangaRelationships;
     $: relationships = scoped.mangaRelationships;
+    var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
+    $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
     async function getMangaChapters(id) {
         const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en");
@@ -191,12 +193,12 @@
 <svelte:window on:beforeUnload={beforeUnload} />
 
 <svelte:head>
-    <title>Chapters of {manga.title.en}</title>
-	<meta name="description" value="Read {manga.title.en} online, or download it as EPUB or CBZ file. Free of charge and ads." />
+    <title>Chapters of {title}</title>
+	<meta name="description" value="Read {title} online, or download it as EPUB or CBZ file. Free of charge and ads." />
 </svelte:head>
 
 <main>
-    <h1>{manga.title.en}</h1>
+    <h1>{title}</h1>
 
     <div class="flex">
         <div class="linklist">
