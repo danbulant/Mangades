@@ -13,6 +13,8 @@
     $: manga = scoped.manga;
     var atHome = scoped.atHome;
     $: atHome = scoped.atHome;
+    var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
+    $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
     var quality = "data";
 
@@ -178,8 +180,8 @@
 <svelte:window on:keydown={keydown} on:keyup={keyup} on:resize={isZooming} />
 
 <svelte:head>
-    <title>{manga.title.en} Chapter {chapter.data.attributes.chapter} Page {page}</title>
-	<meta name="description" value="Read page {page} of chapter {chapter.data.attributes.chapter} of {manga.title.en} online. Free of charge and ads." />
+    <title>{title} Chapter {chapter.data.attributes.chapter} Page {page}</title>
+	<meta name="description" value="Read page {page} of chapter {chapter.data.attributes.chapter} of {title} online. Free of charge and ads." />
 </svelte:head>
 
 <div class="top">
