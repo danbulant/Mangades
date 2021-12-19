@@ -86,8 +86,9 @@
 
 	function open() {
 		var id = name;
-		if(name.startsWith("https://mangadex.org/title")) {
-			id = name.substr("https://mangadex.org/title".length);
+		if(name.startsWith("https://mangadex.org/title/")) {
+			id = name.substr("https://mangadex.org/title/".length);
+			id = id.split("/")[0];
 		} else if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(name)) {
 			return alert("You provided invalid ID or link. Make sure you copy the full URL from mangadex.org title page");
 		}
