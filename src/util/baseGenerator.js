@@ -33,18 +33,24 @@ export class BaseGenerator {
      */
     constructor(opts) {
         this.opts = opts;
+        this.opts.quality = "data";
     }
 
     async generate() {}
 
     /**
      * @param {string | Chapter | any} chapter 
-     * @returns {Promise<string>}
+     * @returns {Promise<{ urls: string[], hashes: string[], hash: string[] }>}
      */
-    async getBaseURL(chapter) {
-        if(typeof chapter === "object") chapter = chapter.data.id;
-        const { baseUrl } = await request("at-home/server/" + chapter);
-        return baseUrl;
+    async getURLs(chapter) {
+        if(typeof chapter === "object") chapter = chapter.id;
+        const data = await request("at-home/server/" + chapter);
+        console.log(data, this.opts);
+        return {
+            urls: data.chapter[this.opts.quality].map(t => `${data.baseUrl}/${this.opts.quality}/${data.chapter.hash}/${t}`),
+            hashes: data.chapter[this.opts.quality],
+            hash: data.chapter.hash
+        }
     }
 
     /**
@@ -55,14 +61,14 @@ export class BaseGenerator {
     async fetchImage(url, chapter) {
         var res;
         try {
-            res = await fetch(chapter.baseUrl + "/" + url);
+            res = await fetch(url);
         } catch(e) {
             console.error(e);
-            res = await fetch(proxy + chapter.baseUrl + "/" + url);
+            res = await fetch(proxy + url);
         }
         if(Math.floor(res.status / 100) !== 2) {
             for(var i = 0; i < RETRY_LIMIT; i++) {
-                chapter.baseUrl = await this.getBaseURL(chapter);
+                chapter.baseUrl = await this.getURLs(chapter);
                 res = await fetch(chapter.baseUrl + "/" + url);
                 if(Math.floor(res.status / 100) === 2) return res;
             }

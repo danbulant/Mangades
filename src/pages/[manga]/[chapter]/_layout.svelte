@@ -12,8 +12,8 @@
     async function getChapter(id) {
         if(chapterData && chapterData.id === id) return chapterData;
         const data = await request("chapter/" + id);
-        console.log(data);
-        return data;
+        console.log(data.data);
+        return data.data;
     }
 
     var chapterData = getChapter(chapter);
@@ -21,8 +21,9 @@
 
     async function getAtHome(id) {
         if(chapterData && chapterData.id === id) return atHome;
-        const { baseUrl } = await request("at-home/server/" + id);
-        return baseUrl;
+        const data = await request("at-home/server/" + id);
+        console.log(data);
+        return data;
     }
 
     var atHome = getAtHome(chapter);

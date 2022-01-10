@@ -25,14 +25,19 @@ export class CBZGenerator extends BaseGenerator {
         const chapterCountLength = this.opts.chapters.reduce((a, b) => Math.max(a.number, b.number), 0).toString().length;
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
-            if(!chapter.baseUrl) chapter.baseUrl = await this.getBaseURL(chapter.id);
+            if(!chapter.links) {
+                let data = await this.getURLs(chapter);
+                chapter.links = data.urls;
+                chapter.hashes = data.hashes;
+                chapter.hash = data.hash;
+            }
             const imageCountLength = chapter.links.length.toString().length;
             for(const i in chapter.links) {
+                let url = chapter.links[i];
+                let hash = chapter.hashes[i];
                 this.callback(chapterI, i, false);
-                const hash = chapter.links[i];
-                const URL = `${this.opts.quality}/${chapter.hash}/${hash}`;
                 const start = performance.now();
-                const res = await this.fetchImage(URL, chapter);
+                const res = await this.fetchImage(url, chapter);
                 const chapterText = chapter.number.toString().padStart(chapterCountLength, "0");
                 const image = new ZipPassThrough(`${this.opts.title} ${chapterText}/${this.opts.title} ${chapterText} page ${i.toString().padStart(imageCountLength, "0")}.${hash.substr(hash.lastIndexOf(".") + 1)}`);
                 this.zip.add(image);
@@ -43,7 +48,7 @@ export class CBZGenerator extends BaseGenerator {
                     cached: res.headers.get("X-Cache") === "HIT",
                     duration: end,
                     success: Math.floor(res.status / 100) === 2,
-                    url: `${chapter.baseUrl}/${URL}`
+                    url
                 });
                 image.push(data, true);
                 this.callback(chapterI, i, true);

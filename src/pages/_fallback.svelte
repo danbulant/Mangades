@@ -2,7 +2,7 @@
     import { url } from '@roxi/routify'
 </script>
 
-<style>
+<style lang="postcss">
   .huge {
     font-size: 12rem;
   }

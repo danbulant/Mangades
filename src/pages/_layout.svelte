@@ -15,7 +15,7 @@
     </div>
 {/if}
 
-<style>
+<style lang="postcss">
     .flow {
         position: fixed;
         bottom: 0;

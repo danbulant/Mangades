@@ -142,7 +142,7 @@
 	</p>
 </main>
 
-<style>
+<style lang="postcss">
 	.filters {
 		display: flex;
 		justify-content: space-between;

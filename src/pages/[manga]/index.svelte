@@ -20,7 +20,8 @@
 
     async function getMangaChapters(id) {
         const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en");
-        data.results.sort((a, b) => a.data.attributes.chapter - b.data.attributes.chapter);
+        console.log(data);
+        data.data.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
         return data;
     }
 
@@ -61,9 +62,9 @@
             console.log(chapter, link, finished);
             if(chapter === -1 || link === -1) return;
             var cs = await chapters;
-            var related = cs.results.filter(t => processing.opts.chapters.find(c => t.data.id === c.id));
+            var related = cs.data.filter(t => processing.opts.chapters.find(c => t.id === c.id));
             var done = processing.opts.chapters.filter(t => parseFloat(t.number) < parseFloat(processing.opts.chapters[chapter].number));
-            var linkCount = related.map(t => t.data.attributes[quality].length).reduce((a, b) => a + b);
+            var linkCount = related.map(t => t.attributes.pages).reduce((a, b) => a + b);
             console.log(related, done, done.reduce((a, b) => (a.links || []).length + (b.links || []).length, 0), link + 1, linkCount);
             progress = (done.reduce((a, b) => (a.links || []).length + (b.links || []).length, 0) + link + 1) / linkCount;
             progressMap.set(processing.opts.chapters[chapter].id, link + 1);
@@ -81,28 +82,24 @@
         epub: EpubGenerator,
         cbz: CBZGenerator
     }
-    const quality = "data";
 
     async function downloadSingle(chapter) {
-        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.data.attributes.chapter}.${format}`, {
+        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.attributes.chapter}.${format}`, {
             writableStrategy: undefined, // (optional)
             readableStrategy: undefined,  // (optional)
         });
 
         const generator = new generators[format]({
             file,
-            id: chapter.data.id,
-            language: chapter.data.attributes.translatedLanguage,
-            quality,
-            updatedAt: chapter.data.attributes.updatedAt,
+            id: chapter.id,
+            language: chapter.attributes.translatedLanguage,
+            updatedAt: chapter.attributes.updatedAt,
             title: manga.title.en,
             author: "Unknown",
             chapters: [{
-                hash: chapter.data.attributes.hash,
-                id: chapter.data.id,
-                links: chapter.data.attributes[quality],
-                number: chapter.data.attributes.chapter,
-                volume: chapter.data.attributes.volume
+                id: chapter.id,
+                number: chapter.attributes.chapter,
+                volume: chapter.attributes.volume
             }]
         });
 
@@ -127,7 +124,7 @@
         }
     }
     function downloadMulti() {
-        selected.sort((a, b) => a.data.attributes.chapter - b.data.attributes.chapter);
+        selected.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
         if(!selected.length) return;
         if(selected.length === 1) {
             downloadSingle(selected.shift());
@@ -140,18 +137,15 @@
         });
         const generator = new generators[format]({
             file,
-            quality,
             id: window.location.toString(),
-            language: selected[0].data.attributes.translatedLanguage,
+            language: selected[0].attributes.translatedLanguage,
             updatedAt: new Date,
             title: manga.title.en,
             author: "Unknown",
             chapters: selected.map(chapter => ({
-                hash: chapter.data.attributes.hash,
-                id: chapter.data.id,
-                links: chapter.data.attributes[quality],
-                number: chapter.data.attributes.chapter,
-                volume: chapter.data.attributes.volume
+                id: chapter.id,
+                number: chapter.attributes.chapter,
+                volume: chapter.attributes.volume
             }))
         });
 
@@ -252,13 +246,13 @@
     {#await chapters}
         Loading chapters...
     {:then chapters}
-        {#if chapters.results.length === 0}
+        {#if chapters.data.length === 0}
             <p>No chapters found.</p>
         {/if}
         <table>
             <tbody>
-                {#each chapters.results as chapter, i} 
-                    <Chapter progress={(progressMap.get(chapter.data.id) || 0) / chapter.data.attributes[quality].length} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
+                {#each chapters.data as chapter, i} 
+                    <Chapter progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
                 {/each}
             </tbody>
         </table>
@@ -268,7 +262,7 @@
     <br>
 </main>
 
-<style>
+<style lang="postcss">
     .flex {
         display: flex;
         justify-content: space-between;

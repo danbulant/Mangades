@@ -26,13 +26,13 @@
 </script>
 
 <tr on:mouseenter={mouseenter} on:mousedown={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
-    <td class="no-wrap">{chapter.data.attributes.volume ? "Vol " + chapter.data.attributes.volume : ""}</td>
-    <td class="no-wrap">{chapter.data.attributes.chapter ? "Chapter " + chapter.data.attributes.chapter : ""}</td>
-    <td>{chapter.data.attributes.title}</td>
-    <td class="action no-wrap"><a href={$url("./" + chapter.data.id)} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
+    <td class="no-wrap">{chapter.attributes.volume ? "Vol " + chapter.attributes.volume : ""}</td>
+    <td class="no-wrap">{chapter.attributes.chapter ? "Chapter " + chapter.attributes.chapter : ""}</td>
+    <td>{chapter.attributes.title}</td>
+    <td class="action no-wrap"><a href={$url("./" + chapter.id)} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
 </tr>
 
-<style>
+<style lang="postcss">
     tr {
         border: 1px solid black;
         position: relative;

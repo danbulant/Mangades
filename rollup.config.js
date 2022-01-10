@@ -53,8 +53,7 @@ export default {
             hot: isNollup,
             preprocess: [
                 autoPreprocess({
-                    postcss: { plugins: [postcssImport()] },
-                    defaults: { style: 'postcss' }
+                    postcss: { plugins: [postcssImport()] }
                 })
             ]
         }),

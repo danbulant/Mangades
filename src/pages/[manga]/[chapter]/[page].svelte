@@ -13,6 +13,7 @@
     $: manga = scoped.manga;
     var atHome = scoped.atHome;
     $: atHome = scoped.atHome;
+    console.log("athome", atHome);
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
@@ -63,7 +64,7 @@
 
     function next() {
         if(!image.complete) return;
-        if(page > (chapter.data.attributes[quality].length - 2)) return;
+        if(page > (atHome.chapter[quality].length - 2)) return;
         $goto("./" + (parseInt(page) + 1));
         document.scrollingElement.scrollTo({
             top: 0
@@ -180,26 +181,26 @@
 <svelte:window on:keydown={keydown} on:keyup={keyup} on:resize={isZooming} />
 
 <svelte:head>
-    <title>{title} Chapter {chapter.data.attributes.chapter} Page {page}</title>
-	<meta name="description" value="Read page {page} of chapter {chapter.data.attributes.chapter} of {title} online. Free of charge and ads." />
+    <title>{title} Chapter {chapter.attributes.chapter} Page {page}</title>
+	<meta name="description" value="Read page {page} of chapter {chapter.attributes.chapter} of {title} online. Free of charge and ads." />
 </svelte:head>
 
 <div class="top">
     <a class="back" href={$url("../..")}>Back to chapter list</a>
 </div>
 
-<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${atHome}/${quality}/${chapter.data.attributes.hash}/${chapter.data.attributes[quality][page - 1]}`} alt="Page {page} in chapter {chapter.data.attributes.chapter} of {manga.title.en}">
+<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
 
 <div class="bottom">
     {#if page > 1}
         <a href={$url("./" + (page - 1))} class="prev">Previous</a>
     {/if}
-    {#if page < chapter.data.attributes[quality].length - 1}
+    {#if page < atHome.chapter[quality].length - 1}
         <a href={$url("./" + (parseInt(page) + 1))} class="next">Next</a>
     {/if}
 </div>
 
-<style>
+<style lang="postcss">
     img {
         width: calc(100vw - 16px);
         height: calc(100vh - 17px);

@@ -25,7 +25,19 @@ export class EpubGenerator extends BaseGenerator {
             }
         };
 
-        this.hashes = this.opts.chapters.map(t => t.links).flat();
+        this.hashes = [];
+
+        for(const chapterI in this.opts.chapters) {
+            const chapter = this.opts.chapters[chapterI];
+            if(!chapter.links) {
+                let data = await this.getURLs(chapter);
+                chapter.links = data.urls;
+                chapter.hashes = data.hashes;
+                chapter.hash = data.hash;
+                this.hashes.push(...chapter.hashes);
+            }
+        }
+
 
         this.mimetype();
         this.container();
@@ -36,13 +48,12 @@ export class EpubGenerator extends BaseGenerator {
 
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
-            if(!chapter.baseUrl) chapter.baseUrl = await this.getBaseURL(chapter.id);
             for(const i in chapter.links) {
+                let url = chapter.links[i];
+                let hash = chapter.hashes[i];
                 this.callback(chapterI, i, false);
-                const hash = chapter.links[i];
-                const URL = `${this.opts.quality}/${chapter.hash}/${hash}`;
                 const start = performance.now();
-                const res = await this.fetchImage(URL, chapter);
+                const res = await this.fetchImage(url, chapter);
                 const image = new ZipPassThrough("OEBPS/" + hash);
                 this.zip.add(image);
                 const data = new Uint8Array(await res.arrayBuffer());
@@ -52,7 +63,7 @@ export class EpubGenerator extends BaseGenerator {
                     cached: res.headers.get("X-Cache") === "HIT",
                     duration: end,
                     success: Math.floor(res.status / 100) === 2,
-                    url: `${chapter.baseUrl}/${URL}`
+                    url: url
                 });
                 image.push(data, true);
                 const textContent = new ZipPassThrough("OEBPS/" + i + ".xhtml");

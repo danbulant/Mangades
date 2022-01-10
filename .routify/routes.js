@@ -1,11 +1,11 @@
 
 /**
- * @roxi/routify 2.18.1
- * File generated Thu May 20 2021 18:09:03 GMT+0200 (GMT+02:00)
+ * @roxi/routify 2.18.4
+ * File generated Mon Jan 10 2022 15:33:28 GMT+0100 (Central European Standard Time)
  */
 
-export const __version = "2.18.1"
-export const __timestamp = "2021-05-20T16:09:03.946Z"
+export const __version = "2.18.4"
+export const __timestamp = "2022-01-10T14:33:28.723Z"
 
 //buildRoutes
 import { buildClientTree } from "@roxi/routify/runtime/buildRoutes"
@@ -24,7 +24,7 @@ export const _tree = {
   "ownMeta": {
     "preload": "proximity"
   },
-  "absolutePath": "/home/dan/Documents/node_projects/mangades/src/pages/_layout.svelte",
+  "absolutePath": "/home/dan/projects/node/Mangades/src/pages/_layout.svelte",
   "children": [
     {
       "isFile": true,
@@ -34,7 +34,7 @@ export const _tree = {
       "name": "_fallback",
       "ext": "svelte",
       "badExt": false,
-      "absolutePath": "/home/dan/Documents/node_projects/mangades/src/pages/_fallback.svelte",
+      "absolutePath": "/home/dan/projects/node/Mangades/src/pages/_fallback.svelte",
       "importPath": "../src/pages/_fallback.svelte",
       "isLayout": false,
       "isReset": false,
@@ -59,8 +59,85 @@ export const _tree = {
       "name": "_layout",
       "ext": "svelte",
       "badExt": false,
-      "absolutePath": "/home/dan/Documents/node_projects/mangades/src/pages/[manga]/_layout.svelte",
+      "absolutePath": "/home/dan/projects/node/Mangades/src/pages/[manga]/_layout.svelte",
       "children": [
+        {
+          "isFile": true,
+          "isDir": true,
+          "file": "_layout.svelte",
+          "filepath": "/[manga]/[chapter]/_layout.svelte",
+          "name": "_layout",
+          "ext": "svelte",
+          "badExt": false,
+          "absolutePath": "/home/dan/projects/node/Mangades/src/pages/[manga]/[chapter]/_layout.svelte",
+          "children": [
+            {
+              "isFile": true,
+              "isDir": false,
+              "file": "[page].svelte",
+              "filepath": "/[manga]/[chapter]/[page].svelte",
+              "name": "[page]",
+              "ext": "svelte",
+              "badExt": false,
+              "absolutePath": "/home/dan/projects/node/Mangades/src/pages/[manga]/[chapter]/[page].svelte",
+              "importPath": "../src/pages/[manga]/[chapter]/[page].svelte",
+              "isLayout": false,
+              "isReset": false,
+              "isIndex": false,
+              "isFallback": false,
+              "isPage": true,
+              "ownMeta": {},
+              "meta": {
+                "recursive": true,
+                "preload": "proximity",
+                "prerender": true
+              },
+              "path": "/:manga/:chapter/:page",
+              "id": "__manga__chapter__page",
+              "component": () => import('../src/pages/[manga]/[chapter]/[page].svelte').then(m => m.default)
+            },
+            {
+              "isFile": true,
+              "isDir": false,
+              "file": "index.svelte",
+              "filepath": "/[manga]/[chapter]/index.svelte",
+              "name": "index",
+              "ext": "svelte",
+              "badExt": false,
+              "absolutePath": "/home/dan/projects/node/Mangades/src/pages/[manga]/[chapter]/index.svelte",
+              "importPath": "../src/pages/[manga]/[chapter]/index.svelte",
+              "isLayout": false,
+              "isReset": false,
+              "isIndex": true,
+              "isFallback": false,
+              "isPage": true,
+              "ownMeta": {},
+              "meta": {
+                "recursive": true,
+                "preload": "proximity",
+                "prerender": true
+              },
+              "path": "/:manga/:chapter/index",
+              "id": "__manga__chapter_index",
+              "component": () => import('../src/pages/[manga]/[chapter]/index.svelte').then(m => m.default)
+            }
+          ],
+          "isLayout": true,
+          "isReset": false,
+          "isIndex": false,
+          "isFallback": false,
+          "isPage": false,
+          "importPath": "../src/pages/[manga]/[chapter]/_layout.svelte",
+          "ownMeta": {},
+          "meta": {
+            "recursive": true,
+            "preload": "proximity",
+            "prerender": true
+          },
+          "path": "/:manga/:chapter",
+          "id": "__manga__chapter__layout",
+          "component": () => import('../src/pages/[manga]/[chapter]/_layout.svelte').then(m => m.default)
+        },
         {
           "isFile": true,
           "isDir": false,
@@ -69,7 +146,7 @@ export const _tree = {
           "name": "index",
           "ext": "svelte",
           "badExt": false,
-          "absolutePath": "/home/dan/Documents/node_projects/mangades/src/pages/[manga]/index.svelte",
+          "absolutePath": "/home/dan/projects/node/Mangades/src/pages/[manga]/index.svelte",
           "importPath": "../src/pages/[manga]/index.svelte",
           "isLayout": false,
           "isReset": false,
@@ -111,7 +188,7 @@ export const _tree = {
       "name": "index",
       "ext": "svelte",
       "badExt": false,
-      "absolutePath": "/home/dan/Documents/node_projects/mangades/src/pages/index.svelte",
+      "absolutePath": "/home/dan/projects/node/Mangades/src/pages/index.svelte",
       "importPath": "../src/pages/index.svelte",
       "isLayout": false,
       "isReset": false,
