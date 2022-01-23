@@ -21,7 +21,9 @@
     async function getMangaChapters(id) {
         const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en");
         console.log(data);
-        data.data.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
+        data.data = data.data
+            .filter(datum => !datum.attributes?.externalUrl)
+            .sort((a, b) => a.attributes.chapter - b.attributes.chapter);
         return data;
     }
 
