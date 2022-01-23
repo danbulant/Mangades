@@ -169,7 +169,7 @@
 
     function selectAll() {
         chapters.then(res => {
-            var chapters = res.results;
+            var chapters = res.data;
             if(arraysEqual(selected, chapters)) {
                 selected = [];
             } else {
