@@ -39,7 +39,7 @@ export class CBZGenerator extends BaseGenerator {
                 const start = performance.now();
                 const res = await this.fetchImage(url, chapter);
                 const chapterText = chapter.number.toString().padStart(chapterCountLength, "0");
-                const image = new ZipPassThrough(`${this.opts.title} ${chapterText}/${this.opts.title} ${chapterText} page ${i.toString().padStart(imageCountLength, "0")}.${hash.substr(hash.lastIndexOf(".") + 1)}`);
+                const image = new ZipPassThrough(`${this.opts.title} ${chapter.volume ? "vol " + chapter.volume.toString().padStart(3, "00") + " " : ""} ch ${chapterText}${chapter.title ? " " + chapter.title : ""}/${this.opts.title} ${chapterText} page ${i.toString().padStart(imageCountLength, "0")}.${hash.substr(hash.lastIndexOf(".") + 1)}`);
                 this.zip.add(image);
                 const data = new Uint8Array(await res.arrayBuffer());
                 const end = performance.now() - start;

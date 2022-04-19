@@ -19,7 +19,7 @@
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
     async function getMangaChapters(id) {
-        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en");
+        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en&includes[]=scanlation_group");
         console.log(data);
         data.data = data.data
             .filter(datum => !datum.attributes?.externalUrl)
@@ -27,11 +27,12 @@
         return data;
     }
 
+    var chapters;
     $: chapters = getMangaChapters(mangaId);
 
-    console.log(manga);
-    console.log(chapters);
-    console.log(relationships);
+    console.log("manga", manga);
+    console.log("chapters", chapters);
+    console.log("relationships", relationships);
 
     var progress = 0;
     var state = "idle";
@@ -149,6 +150,7 @@
             author: "Unknown",
             chapters: selected.map(chapter => ({
                 id: chapter.id,
+                title: chapter.attributes.title,
                 number: chapter.attributes.chapter,
                 volume: chapter.attributes.volume
             }))
@@ -223,6 +225,36 @@
 <main>
     <h1>{title}</h1>
 
+    <h3>
+        {#if manga.altTitles.find(t => t.en)}
+            {manga.altTitles.find(t => t.en)?.en} &middot;
+        {/if}
+        {#if manga.year}
+            {manga.year} &middot;
+        {/if}
+        {manga.status}
+    </h3>
+
+    <div class="flex">
+        {#if relationships.find(t => t.type === "cover_art")}
+            <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+        {/if}
+        <div class="info">
+            {#if relationships.find(t => t.type === "author")}
+                <span class="block">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
+            {/if}
+            {#if relationships.find(t => t.type === "artist")}
+                <span class="block">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
+            {/if}
+            {#if relationships.find(t => t.related === "colored" && t.type === "manga")}
+                <a href="/{relationships.find(t => t.related === "colored" && t.type === "manga").id}" class="block">Colored version</a>
+            {/if}
+            {#if manga.description.en}
+                <p>{manga.description.en}</p>
+            {/if}
+        </div>
+    </div>
+
     <div class="flex">
         <div class="linklist">
             <a href={$url("..")}>Go back to search page</a>
@@ -293,6 +325,24 @@
 </main>
 
 <style lang="postcss">
+    .cover {
+        border-radius: 10px;
+        height: 350px;
+        margin-right: 15px;
+    }
+    .block {
+        display: block;
+    }
+    .flex {
+        display: flex;
+    }
+    h3 {
+        text-align: center;
+        margin-top: 0;
+    }
+    h1 {
+        margin-bottom: 0;
+    }
     .flex {
         display: flex;
         justify-content: space-between;

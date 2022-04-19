@@ -7,6 +7,7 @@
     export var selected;
     export var disabledDownload = false;
     export var progress = 0;
+    var scanlationGroup = chapter.relationships.find(t => t.type === "scanlation_group")?.attributes.name;
 
     /**
      * @param {MouseEvent} e
@@ -28,7 +29,10 @@
 <tr on:mouseenter={mouseenter} on:mousedown={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
     <td class="no-wrap">{chapter.attributes.volume ? "Vol " + chapter.attributes.volume : ""}</td>
     <td class="no-wrap">{chapter.attributes.chapter ? "Chapter " + chapter.attributes.chapter : ""}</td>
-    <td>{chapter.attributes.title}</td>
+    <td>
+        <div class="title">{chapter.attributes.title}</div>
+        <div class="scanlation">{scanlationGroup}</div>
+    </td>
     <td class="action no-wrap"><a href={$url("./" + chapter.id)} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
 </tr>
 
@@ -40,6 +44,13 @@
         background-repeat: no-repeat;
         user-select: none;
     }
+    .scanlation {
+        color: grey;
+        font-size: 0.9rem;
+    }
+    .title {
+        font-size: 1.1rem;
+    }
 
     tr.selected {
         background: rgba(0,0,0,0.15);
@@ -49,6 +60,9 @@
     }
     tr.selected:hover {
         background: rgba(0,0,0,0.25);
+    }
+    .no-wrap {
+        white-space: nowrap;
     }
 
     td {

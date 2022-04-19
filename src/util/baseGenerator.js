@@ -7,6 +7,7 @@
  * @property {string[]} links
  * @property {string} hash
  * @property {string} baseUrl
+ * @property {string} title
  */
 
 import request, { proxy } from "./request";
