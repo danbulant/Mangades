@@ -189,7 +189,7 @@
     <a class="back" href={$url("../..")}>Back to chapter list</a>
 </div>
 
-<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
+<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`https://cors-anywhere.danbulant.workers.dev/?${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
 
 <div class="bottom">
     {#if page > 1}
