@@ -2,6 +2,6 @@
 /public/build/
 
 .DS_Store
-/.routify
 package-lock.json
 pnpm-lock.yaml
+/.routify/

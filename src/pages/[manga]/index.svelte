@@ -21,7 +21,9 @@
     async function getMangaChapters(id) {
         const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en");
         console.log(data);
-        data.data.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
+        data.data = data.data
+            .filter(datum => !datum.attributes?.externalUrl)
+            .sort((a, b) => a.attributes.chapter - b.attributes.chapter);
         return data;
     }
 
@@ -83,15 +85,10 @@
         cbz: CBZGenerator
     }
 
-    async function downloadSingle(chapter) {
-        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.attributes.chapter}.${format}`, {
-            writableStrategy: undefined, // (optional)
-            readableStrategy: undefined,  // (optional)
-        });
-
-        const generator = new generators[format]({
+    function createGenerator(chapter, file) {
+        return new generators[format]({
             file,
-            id: chapter.id,
+            id: window.location.toString() + "-" + chapter.id,
             language: chapter.attributes.translatedLanguage,
             updatedAt: chapter.attributes.updatedAt,
             title: manga.title.en,
@@ -102,6 +99,14 @@
                 volume: chapter.attributes.volume
             }]
         });
+    }
+    async function downloadSingle(chapter) {
+        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.attributes.chapter}.${format}`, {
+            writableStrategy: undefined, // (optional)
+            readableStrategy: undefined,  // (optional)
+        });
+
+        const generator = createGenerator(chapter, file)
 
         console.log(generator);
         queue.push(generator);
@@ -154,6 +159,30 @@
         selected = [];
         processQueue();
     }
+    function downloadSeparate() {
+        selected.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
+        if(!selected.length) return;
+        if(selected.length === 1) {
+            downloadSingle(selected.shift());
+            selected = [];
+            return;
+        }
+
+        for (const chapter of selected) {
+            const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.attributes.chapter}.${format}`, {
+                writableStrategy: undefined, // (optional)
+                readableStrategy: undefined,  // (optional)
+            });
+
+            const generator = createGenerator(chapter, file)
+
+            console.log(generator);
+            queue.push(generator);
+        }
+
+        selected = [];
+        processQueue();
+    }
 
     /**
      * @param {BeforeUnloadEvent} e
@@ -169,7 +198,7 @@
 
     function selectAll() {
         chapters.then(res => {
-            var chapters = res.results;
+            var chapters = res.data;
             if(arraysEqual(selected, chapters)) {
                 selected = [];
             } else {
@@ -230,6 +259,7 @@
             <option value="epub"><b>.epub</b> Electronic publication</option>
         </select>
         <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
+        <button disabled={!selected.length} on:click={downloadSeparate}>Download Separate</button>
     </div>
 
     <div class="flex">
