@@ -30,8 +30,8 @@
     <td class="no-wrap">{chapter.attributes.volume ? "Vol " + chapter.attributes.volume : ""}</td>
     <td class="no-wrap">{chapter.attributes.chapter ? "Chapter " + chapter.attributes.chapter : ""}</td>
     <td>
-        <div class="title">{chapter.attributes.title}</div>
-        <div class="scanlation">{scanlationGroup}</div>
+        <div class="title">{chapter.attributes.title || " "}</div>
+        <div class="scanlation">{scanlationGroup || "Unknown group"}</div>
     </td>
     <td class="action no-wrap"><a href={$url("./" + chapter.id)} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
 </tr>

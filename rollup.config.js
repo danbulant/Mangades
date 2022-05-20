@@ -1,16 +1,15 @@
 import svelte from 'rollup-plugin-svelte-hot';
-import Hmr from 'rollup-plugin-hot'
+import Hmr from 'rollup-plugin-hot';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
-import { copySync, removeSync } from 'fs-extra'
-import { spassr } from 'spassr'
-import getConfig from '@roxi/routify/lib/utils/config'
-import autoPreprocess from 'svelte-preprocess'
-import postcssImport from 'postcss-import'
-import { injectManifest } from 'rollup-plugin-workbox'
-
+import { copySync, removeSync } from 'fs-extra';
+import { spassr } from 'spassr';
+import getConfig from '@roxi/routify/lib/utils/config';
+import autoPreprocess from 'svelte-preprocess';
+import postcssImport from 'postcss-import';
+import { injectManifest } from 'rollup-plugin-workbox';
 
 const { distDir } = getConfig() // use Routify's distDir for SSOT
 const assetsDir = 'assets'
@@ -21,7 +20,6 @@ const production = !process.env.ROLLUP_WATCH;
 // clear previous builds
 removeSync(distDir)
 removeSync(buildDir)
-
 
 const serve = () => ({
     writeBundle: async () => {

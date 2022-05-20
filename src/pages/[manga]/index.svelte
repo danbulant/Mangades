@@ -6,6 +6,11 @@
     import request from "../../util/request";
     import { BaseGenerator } from "../../util/baseGenerator";
     import { arraysEqual } from "../../util/arrays";
+    import { makeRequest } from "../../util/anilist";
+    import Tabs from "../../components/tabs/tabs.svelte";
+    import { slide } from "svelte/transition";
+    import { Swiper, SwiperSlide } from 'swiper/svelte';
+    import ArtList from "../../components/artList.svelte";
 
     export var scoped;
 
@@ -19,10 +24,10 @@
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
     async function getMangaChapters(id) {
-        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en&includes[]=scanlation_group");
+        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en&translatedLanguage[]=uk&includes[]=scanlation_group");
         console.log(data);
         data.data = data.data
-            .filter(datum => !datum.attributes?.externalUrl)
+            .filter(item => !item.attributes?.externalUrl)
             .sort((a, b) => a.attributes.chapter - b.attributes.chapter);
         return data;
     }
@@ -213,6 +218,54 @@
             }
         });
     }
+
+    function anilistInfo(title) {
+        return makeRequest(`
+        query ($search: String) {
+            Media(search: $search, format: MANGA) {
+                id
+                type
+                format
+                status
+                chapters
+                volumes
+                countryOfOrigin
+                bannerImage
+                genres
+                synonyms
+                averageScore
+                popularity
+                isFavourite
+                isFavouriteBlocked
+                isAdult
+                siteUrl
+                coverImage {
+                    large
+                    medium
+                    color
+                }
+            }
+        }`, { search: title }).then(t => t.data.Media);
+    }
+
+    let anilistData;
+    $: anilistData = anilistInfo(title);
+
+    var selected = "Chapters";
+    const tabs = ["Chapters", "Art", "More information"];
+
+    $: {
+        if(swiper && tabs.indexOf(selected) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selected));
+    }
+
+    let swiper;
+    function swiperInit(e) {
+        swiper = e.detail[0];
+    }
+    function swiperUpdate() {
+        if(selected !== tabs[swiper.realIndex])
+            selected = tabs[swiper.realIndex];
+    }
 </script>
 
 <svelte:window on:beforeUnload={beforeUnload} />
@@ -222,7 +275,14 @@
 	<meta name="description" value="Read {title} online, or download it as EPUB or CBZ file. Free of charge and ads." />
 </svelte:head>
 
+{#await anilistData then data}
+    {#if data.bannerImage}
+        <img class="banner" src={data.bannerImage} alt="">
+    {/if}
+{/await}
+
 <main>
+
     <h1>{title}</h1>
 
     <h3>
@@ -232,7 +292,7 @@
         {#if manga.year}
             {manga.year} &middot;
         {/if}
-        {manga.status}
+        {#await anilistData then data} {data.status} {data.isAdult ? "· 18+" : ""} {/await}
     </h3>
 
     <div class="flex">
@@ -263,68 +323,131 @@
     </div>
 
     {#if copyrightOpen}
-        <p class="copyright">
+        <p class="copyright" transition:slide={{ duration: 500 }}>
             Open <a href="https://mangadex.org/title/{mangaId}">Mangadex.org page of this manga</a>, select MORE and click REPORT. I cannot delete the content, even if you report it to this website's hosting, as this is just one of many clients to mangadex.
             <br>
             <br>
-            In case of reports, I can just block the content from being loaded in this page, but that doesn't mean it's deleted nor that any other client can't access it. And this website is smaller than mangadex, so it doesn't make sense to bother yourself with reporting it to this site when you can report it to one and have it removed from more sites, including this one.
+            In case of reports, I can just block the content from being loaded in this page, but that doesn't mean it's deleted nor that any other client can't access it. To properly request deletion, contact Mangadex.org. After it's deleted from Mangadex.org, this website will no longer allow access to it (since it physically cannot, as it doesn't store any content).
         </p>
     {/if}
 
     <br>
 
-    <div class="state {state}">
-        <div class="progress" style="width: {progress * 100}%;"></div>
+    <Tabs list={tabs} bind:selected />
 
-        <p>
-            {text}
-        </p>
-    </div>
+    <Swiper
+        on:init={swiperInit}
+        spaceBetween={50}
+        autoHeight={true}
+        slidesPerView={1}
+        on:slideChange={swiperUpdate}
+        on:swiper={(e) => console.log(e.detail[0])}
+    >
+        <SwiperSlide>
+            <div style="min-height: 30rem;">
+                <div class="state {state}">
+                    <div class="progress" style="width: {progress * 100}%;"></div>
+            
+                    <p>
+                        {text}
+                    </p>
+                </div>
+            
+                {#if queue.length > 0}
+                    <p><i>{queue.length} downloads queued.</i></p>
+                {/if}
+            
+                <div class="download">
+                    <select name="format" bind:value={format} id="select-format">
+                        <option value="cbz"><b>.cbz</b> Comic Book Zip</option>
+                        <option value="epub"><b>.epub</b> Electronic publication</option>
+                    </select>
+                    <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
+                    <button disabled={!selected.length} on:click={downloadSeparate}>Download Separate</button>
+                </div>
+            
+                <div class="flex">
+                    <p>
+                        <b>
+                            Do not close the tab when a download is in progress.
+                        </b>
+                    </p>
+                    <button on:click={selectAll}>
+                        Select all
+                    </button>
+                </div>
 
-    {#if queue.length > 0}
-        <p><i>{queue.length} downloads queued.</i></p>
-    {/if}
-
-    <div class="download">
-        <select name="format" bind:value={format} id="select-format">
-            <option value="cbz"><b>.cbz</b> Comic Book Zip</option>
-            <option value="epub"><b>.epub</b> Electronic publication</option>
-        </select>
-        <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
-        <button disabled={!selected.length} on:click={downloadSeparate}>Download Separate</button>
-    </div>
-
-    <div class="flex">
-        <p>
-            <b>
-                Do not close the tab when a download is in progress.
-            </b>
-        </p>
-        <button on:click={selectAll}>
-            Select all
-        </button>
-    </div>
-
-    {#await chapters}
-        Loading chapters...
-    {:then chapters}
-        {#if chapters.data.length === 0}
-            <p>No chapters found.</p>
-        {/if}
-        <table>
-            <tbody>
-                {#each chapters.data as chapter, i} 
-                    <Chapter progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
-                {/each}
-            </tbody>
-        </table>
-    {/await}
-	
-	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. Website is open source, and I don't claim any copyright on the publications.</p>
-    <br>
+                {#await chapters}
+                    Loading chapters...
+                {:then chapters}
+                    {#if chapters.data.length === 0}
+                        <p>No chapters found.</p>
+                    {/if}
+                    <table>
+                        <tbody>
+                            {#each chapters.data as chapter, i} 
+                                <Chapter progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
+                            {/each}
+                        </tbody>
+                    </table>
+                {/await}
+            </div>
+        </SwiperSlide>
+        <SwiperSlide>
+            <div style="min-height: 30rem;">
+                <ArtList {mangaId} />
+            </div>
+        </SwiperSlide>
+        <SwiperSlide>
+            <div style="min-height: 30rem;">
+                {#await anilistData then data}
+                    <a href={data.siteUrl}>Anilist entry</a> <br> <br>
+                    
+                    Genres:
+                    {#each data.genres as genre}
+                        <span class="genre">{genre}</span>
+                    {/each}
+                    <br>
+                    
+                    AL popularity: {data.popularity} <br>
+                    favorite on AL: {data.isFavourite ? "yes" : "no"} <br>
+                    AL score: {data.averageScore} <br>
+                    Also known as: {data.synonyms.join(", ")} {Object.values(manga.title).filter(t => t !== title).join(", ")}
+                {/await}
+            </div>
+        </SwiperSlide>
+    </Swiper>
 </main>
 
 <style lang="postcss">
+    .banner {
+        width: 100%;
+        max-height: 30vh;
+        object-fit: cover;
+        animation: reveal 2s cubic-bezier(0, 0, 0.08, 0.99);
+    }
+    .genre {
+        border-radius: 5px;
+        background: rgb(204, 204, 204);
+        padding: 0.3rem;
+        margin: 0.3rem;
+    }
+    .tabbed {
+        min-height: 20rem;
+    }
+    @media (prefers-reduced-motion) {
+        .banner {
+            animation: none;
+        }
+    }
+    @keyframes reveal {
+        from {
+            max-height: 0;
+        }
+        to {
+            max-height: 30vh;
+        }
+    }
     .cover {
         border-radius: 10px;
         height: 350px;
@@ -379,6 +502,7 @@
     }
     main {
         font-size: 1.1rem;
+        padding-bottom: 1rem;
     }
     .no-wrap {
         white-space: nowrap;

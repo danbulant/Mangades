@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "fflate": "^0.6.10",
-    "streamsaver": "^2.0.5"
+    "streamsaver": "^2.0.5",
+    "swiper": "^8.1.5"
   }
 }
