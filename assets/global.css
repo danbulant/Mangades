@@ -39,14 +39,14 @@ label {
 	display: block;
 }
 
-input, button, select, textarea {
+input, button, select, textarea, .button {
 	font-family: inherit;
 	font-size: inherit;
 	padding: 0.4em;
 	margin: 0 0 0.5em 0;
 	box-sizing: border-box;
 	border: 1px solid #ccc;
-	border-radius: 2px;
+	border-radius: 5px;
 }
 
 input:disabled {
@@ -57,20 +57,21 @@ input[type="range"] {
 	height: 0;
 }
 
-button {
+button, .button {
 	color: #333;
 	background-color: #f4f4f4;
 	outline: none;
 }
 
-button:disabled {
+button:disabled, .button:disabled {
 	color: #999;
 }
 
-button:not(:disabled):active {
+button:not(:disabled):active, .button:not(:disabled):active {
 	background-color: #ddd;
 }
 
-button:focus {
+button:focus, .button:focus, button:hover, .button:hover {
 	border-color: #666;
+	text-decoration: none;
 }
