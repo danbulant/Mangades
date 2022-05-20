@@ -48,7 +48,7 @@
 	}
 
 	var result;
-	$: update(name, filters);
+	// $: update(name, filters);
 
 	var scrollSearch = null;
 	/**
