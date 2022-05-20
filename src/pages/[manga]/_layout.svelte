@@ -12,7 +12,6 @@
     var mangaData = getManga(manga);
     $: mangaData = getManga(manga);
     console.log("mangadata", mangaData);
-    $: mangaData.then(t => console.log("manga data", t));
 
     const blocked = ["227e3f72-863f-46f9-bafe-c43104ca29ee", "b0b721ff-c388-4486-aa0f-c2b0bb321512"];
 </script>
