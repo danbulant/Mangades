@@ -21,12 +21,12 @@
      */
     function mouseenter(e) {
         if(e.buttons & 1) {
-            dispatch("select");
+            dispatch("select", e);
         }
     }
 </script>
 
-<tr on:mouseenter={mouseenter} on:mousedown={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
+<tr on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
     <td class="no-wrap">{chapter.attributes.volume ? "Vol " + chapter.attributes.volume : ""}</td>
     <td class="no-wrap">{chapter.attributes.chapter ? "Chapter " + chapter.attributes.chapter : ""}</td>
     <td>
