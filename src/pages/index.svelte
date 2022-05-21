@@ -30,8 +30,6 @@
 	let userDetails = isLogedIn() && getUserDetails();
 	let userManga = isLogedIn() && getUserManga();
 	let listStyle = false;
-	
-	$: userManga.then(t => console.log(t));
 </script>
 
 <svelte:head>
