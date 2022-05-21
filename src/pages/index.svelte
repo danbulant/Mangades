@@ -67,11 +67,11 @@ import MangadexItems from '../components/mangadexItems.svelte';
 	 */
 	async function scroll(e) {
 		if(scrollSearch !== null) return;
-		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 300 && (await result).results.length < (await result).total) {
+		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 800 && (await result).data.length < (await result).total) {
 			scrollSearch = name;
-			const res = await search(name, filters, (await result).results.length);
-			if(scrollSearch === name && res.results.length) {
-				(await result).results.push(...res.results);
+			const res = await search(name, filters, (await result).data.length);
+			if(scrollSearch === name && res.data.length) {
+				(await result).data.push(...res.data);
 				result = result; // trigger reload
 			}
 			setTimeout(() => {
@@ -117,7 +117,7 @@ import MangadexItems from '../components/mangadexItems.svelte';
 	<h1>miniMANGADEX</h1>
 
 	<div class="flex search">
-		<input type="text" placeholder="Enter UUID or URL of mangadex.org manga" bind:value={name}>
+		<input type="text" placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
 		<button on:click={open}>Go</button>
 	</div>
 
