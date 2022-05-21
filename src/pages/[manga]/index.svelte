@@ -222,10 +222,10 @@
         });
     }
 
-    function anilistInfo(title) {
+    function anilistInfo(id) {
         return makeRequest(`
-        query ($search: String) {
-            Media(search: $search, format: MANGA) {
+        query ($id: Int) {
+            Media(id: $id, format: MANGA) {
                 id
                 type
                 format
@@ -248,11 +248,11 @@
                     color
                 }
             }
-        }`, { search: title }).then(t => t.data.Media);
+        }`, { id }).then(t => t.data.Media);
     }
 
     let anilistData;
-    $: anilistData = anilistInfo(title);
+    $: anilistData = manga.links.al && anilistInfo(manga.links.al);
 
     var selectedTab = "Chapters";
     const tabs = ["Chapters", "Art", "More information"];
@@ -260,6 +260,8 @@
     $: {
         if(swiper && tabs.indexOf(selectedTab) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selectedTab));
     }
+
+    $: chapters && chapters.then(() => swiper.slideToClosest())
 
     let swiper;
     function swiperInit(e) {
@@ -280,11 +282,11 @@
 	<meta name="description" value="Read {title} online, or download it as EPUB or CBZ file. Free of charge and ads." />
 </svelte:head>
 
-{#await anilistData then data}
+{#if anilistData} {#await anilistData then data}
     {#if data.bannerImage}
         <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
     {/if}
-{/await}
+{/await} {/if}
 
 <ArtDialog bind:selectedImage />
 
@@ -298,12 +300,13 @@
         {#if manga.year}
             {manga.year} &middot;
         {/if}
-        {#await anilistData then data} {data.status} {data.isAdult ? "· 18+" : ""} {/await}
+        {#if anilistData} {#await anilistData then data} {data.status} &middot; {/await} {/if}
+        {manga.contentRating}
     </h3>
 
     <div class="flex">
         {#if relationships.find(t => t.type === "cover_art")}
-            <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+            <img class="cover" class:r18={!["safe", "suugestive"].includes(manga.contentRating)} draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
         {/if}
         <div class="info">
             {#if relationships.find(t => t.type === "author")}
@@ -323,7 +326,8 @@
 
     <div class="flex">
         <div class="linklist">
-            <a href={$url("..")}>Go back to search page</a>
+            <a href={$url("..")}>Go back to search page</a> <br>
+            <a href="https://mangadex.org/title/{mangaId}">Mangadex.org</a>
         </div>
         <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
     </div>
@@ -406,26 +410,95 @@
         </SwiperSlide>
         <SwiperSlide>
             <div style="min-height: 30rem;">
-                {#await anilistData then data}
-                    <a href={data.siteUrl}>Anilist entry</a> <br> <br>
-                    
-                    Genres:
-                    {#each data.genres as genre}
-                        <span class="genre">{genre}</span>
-                    {/each}
+                {#if anilistData} {#await anilistData then data}                    
+                    Genres: {data.genres.join(", ")}
                     <br>
                     
                     AL popularity: {data.popularity} <br>
                     favorite on AL: {data.isFavourite ? "yes" : "no"} <br>
                     AL score: {data.averageScore} <br>
                     Also known as: {data.synonyms.join(", ")} {Object.values(manga.title).filter(t => t !== title).join(", ")}
-                {/await}
+
+                    <br><br>
+                {/await} {/if}
+
+                <div class="flex-wrapped">
+                    {#if relationships.filter(t => t.type === "manga").length}
+                        <div>
+                            <h4>Related manga</h4>
+                            {#each relationships.filter(t => t.type === "manga") as relatedManga}
+                                <a href="/{relatedManga.id}">{{
+                                    spin_off: "Spin off",
+                                    doujinshi: "Doujinshi",
+                                    side_story: "Side story",
+                                    colored: "Colored version",
+                                    monochrome: "Monochrome version",
+                                    adapted_from: "Adapted from",
+                                    based_on: "Based on"
+                                }[relatedManga.related]}</a> <br>
+                            {/each}
+                        </div>
+                    {/if}
+                    <div>
+                        <h4>Links</h4>
+
+                        {#if manga.links.al}
+                            <a href="https://anilist.co/manga/{manga.links.al}">Anilist</a> <br>
+                        {/if}
+                        {#if manga.links.ap}
+                            <a href="https://www.anime-planet.com/manga/{manga.links.ap}">Animeplanet</a> <br>
+                        {/if}
+                        {#if manga.links.bw}
+                            <a href="https://bookwalker.jp/{manga.links.bw}">Bookwalker</a> <br>
+                        {/if}
+                        {#if manga.links.mu}
+                            <a href="https://www.mangaupdates.com/series.html?id={manga.links.mu}">Manga updates</a> <br>
+                        {/if}
+                        {#if manga.links.nu}
+                            <a href="https://www.novelupdates.com/series/{manga.links.nu}">Novel updates</a> <br>
+                        {/if}
+                        {#if manga.links.amz}
+                            <a href={manga.links.amz}>Amazon</a> <br>
+                        {/if}
+                        {#if manga.links.ebj}
+                            <a href={manga.links.ebj}>Ebookjapan</a> <br>
+                        {/if}
+                        {#if manga.links.mal}
+                            <a href="https://myanimelist.net/manga/{manga.links.mal}">MyAnimeList</a> <br>
+                        {/if}
+                        {#if manga.links.cdj}
+                            <a href="{manga.links.cdj}">CDJapan</a> <br>
+                        {/if}
+                        {#if manga.links.raw}
+                            <a href="{manga.links.raw}">RAW</a> <br>
+                        {/if}
+                        {#if manga.links.engtl}
+                            <a href="{manga.links.engtl}">engtl</a> <br>
+                        {/if}
+                    </div>
+                </div>
             </div>
         </SwiperSlide>
     </Swiper>
 </main>
 
 <style lang="postcss">
+    h4 { margin: 0; }
+    .flex-wrapped {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    .flex-wrapped > div {
+        min-width: 50%;
+    }
+    .cover.r18 {
+        filter: blur(15px);
+        transition: filter .3s;
+    }
+    .cover.r18:hover {
+        filter: blur(0);
+    }
     .banner {
         width: 100%;
         max-height: 30vh;
