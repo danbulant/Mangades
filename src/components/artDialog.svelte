@@ -1,7 +1,6 @@
 <script>
 	import { fade } from 'svelte/transition';
     export var selectedImage;
-    $: console.log("image", selectedImage);
 </script>
 
 {#if selectedImage}
