@@ -11,8 +11,8 @@
     import { slide } from "svelte/transition";
     import { Swiper, SwiperSlide } from 'swiper/svelte';
     import ArtList from "../../components/artList.svelte";
-    import SvelteMarkdown from 'svelte-markdown'
-import ArtDialog from "../../components/artDialog.svelte";
+    import SvelteMarkdown from 'svelte-markdown';
+    import ArtDialog from "../../components/artDialog.svelte";
 
     export var scoped;
 

@@ -1,11 +1,84 @@
 <script>
+    import { params } from '@roxi/routify';
 	import request from "../util/request";
     import { goto } from '@roxi/routify/runtime/helpers';
 	import { getUserDetails, getUserManga, isLogedIn } from "../util/anilist";
-	import Items from "../components/items.svelte";
+	import AnilistItems from "../components/anilistItems.svelte";
 	import ListOrGrid from "../components/listOrGrid.svelte";
+	import ratelimit from '../util/ratelimit';
+import MangadexItems from '../components/mangadexItems.svelte';
     
-	var name = "";
+	var name = $params.search;
+    $: {
+        const url = new URL(window.location.toString());
+        url.searchParams.set("search", name || "");
+        history.replaceState(history.state, "", url.toString());
+    }
+	const filters = {
+		contentRating: ["safe", "suggestive"],
+		demographic: [],
+		status: [],
+		sort: "updatedAt",
+		sortValue: "desc"
+	};
+    /**
+     * Searches for results
+     * @param {string} title
+     * @returns {Promise<object>}
+     */
+    async function search(title, filters, offset=0) {
+        var query = new URLSearchParams();
+        if(title) query.set("title", title);
+		query.set("limit", 100);
+		query.set("offset", offset);
+		query.append("includes[]", "author");
+		query.append("includes[]", "cover_art");
+		query.append("includes[]", "artist");
+		for(const rating of filters.contentRating) {
+			query.append("contentRating[]", rating);
+		}
+		for(const demographic of filters.demographic) {
+			query.append("demographic[]", demographic);
+		}
+		for(const status of filters.status) {
+			query.append("status[]", status);
+		}
+		query.set("order[" + filters.sort + "]", filters.sortValue);
+        const res = await request("manga", query);
+		for(const manga of res.data) {
+			for(const relation of manga.relationships) {
+				if(relation.type === "cover") {
+					console.log(manga, relation);
+				}
+			}
+		}
+		return res;
+    }
+	function update(name, filters) {
+		if(!name) return result = null;
+		result = ratelimit(search, name, filters);
+		result.then(t => console.log(t));
+	}
+	var result;
+	$: isLogedIn() && update(name, filters);
+	var scrollSearch = null;
+	/**
+	 * @param {MouseEvent} e
+	 */
+	async function scroll(e) {
+		if(scrollSearch !== null) return;
+		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 300 && (await result).results.length < (await result).total) {
+			scrollSearch = name;
+			const res = await search(name, filters, (await result).results.length);
+			if(scrollSearch === name && res.results.length) {
+				(await result).results.push(...res.results);
+				result = result; // trigger reload
+			}
+			setTimeout(() => {
+				scrollSearch = null;
+			}, 500);
+		} 
+	}
 
 	var randomMangaLoading = false;
 	async function randomManga() {
@@ -31,6 +104,8 @@
 	let userManga = isLogedIn() && getUserManga();
 	let listStyle = false;
 </script>
+
+<svelte:window on:scroll={scroll} />
 
 <svelte:head>
 	<title>Mangadex search & downloader</title>
@@ -63,28 +138,29 @@
 	{#if isLogedIn()}
 		<ListOrGrid bind:list={listStyle} />
 	
-		<div>
-			{#await userManga then userManga}
-				{#each userManga.data.MediaListCollection.lists as list}
-					<h2>{list.name}</h2>
-					<Items entries={list.entries} itemsList={listStyle} />
-				{/each}
+		{#if result}
+			<h2>Search results</h2>
+			{#await result}
+				Loading...
+			{:then result}
+				<MangadexItems entries={result.data} itemsList={listStyle} />
 			{/await}
-		</div>
+		{:else}
+			<div>
+				{#await userManga then userManga}
+					{#each userManga.data.MediaListCollection.lists as list}
+						<h2>{list.name}</h2>
+						<AnilistItems entries={list.entries} itemsList={listStyle} />
+					{/each}
+				{/await}
+			</div>
+		{/if}
 	{:else}
 		<p>
-			Sign in via Anilist to view your manga list.
+			Sign in via Anilist to view your manga list and search for manga online.
 		</p>
 	{/if}
 	
-	<hr>
-
-	<p>This site works by using Mangadex API <i>from your browser</i>, and loading or downloading the manga directly from MD@H, without using my servers (so I don't host any content seen here, nor can I delete it). The whole site is client side only (it runs in your browser). I cannot delete any content (images or text), only hide it from this specific site - but there are tons of other sites, and anybody with decent coding skills can clone this page and remove the rule hiding the content (this page is open source).</p>
-	
-	<hr>
-
-	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. All of the site's requests are done client side, my servers aren't sharing any manga data. Website is open source, and I don't claim any copyright on the publications. <i>If you believe in good faith you're downloading copyrighted content, file a DMCA at yourself, your operating system (as it took a part in the download), your ISP, your browser and all the free libraries that are used in any of the previous (made by volunteers), and then here. /s</i></p>
-
 	<hr>
 
 	<b>Shameless plug:</b>
@@ -98,6 +174,14 @@
 	<p>
 		Website's source code available on <b><a href="https://github.com/danbulant/mangades">GitHub</a></b> under GPLv3. Hosted on Cloudflare Pages, a static site hosting, where none of the images are stored.
 	</p>
+
+	<hr>
+
+	<p>This site works by using Mangadex API <i>from your browser</i>, and loading or downloading the manga directly from MD@H, without using my servers (so I don't host any content seen here, nor can I delete it). The whole site is client side only (it runs in your browser). I cannot delete any content (images or text), only hide it from this specific site - but there are tons of other sites, and anybody with decent coding skills can clone this page and remove the rule hiding the content (this page is open source).</p>
+	
+	<hr>
+
+	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. All of the site's requests are done client side, my servers aren't sharing any manga data. Website is open source, and I don't claim any copyright on the publications. <i>If you believe in good faith you're downloading copyrighted content, file a DMCA at yourself, your operating system (as it took a part in the download), your ISP, your browser and all the free libraries that are used in any of the previous (made by volunteers), and then here. /s</i></p>
 </main>
 
 <style lang="postcss">

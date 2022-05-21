@@ -61,6 +61,9 @@
         height: 100%;
         z-index: 100;
     }
+    h3 {
+        margin: 0;
+    }
 	.items {
 		display: grid;
   		align-items: center;
