@@ -282,14 +282,13 @@ import ArtDialog from "../../components/artDialog.svelte";
 
 {#await anilistData then data}
     {#if data.bannerImage}
-        <img class="banner" src={data.bannerImage} alt="">
+        <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
     {/if}
 {/await}
 
 <ArtDialog bind:selectedImage />
 
 <main>
-
     <h1>{title}</h1>
 
     <h3>
@@ -304,7 +303,7 @@ import ArtDialog from "../../components/artDialog.svelte";
 
     <div class="flex">
         {#if relationships.find(t => t.type === "cover_art")}
-            <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+            <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
         {/if}
         <div class="info">
             {#if relationships.find(t => t.type === "author")}
