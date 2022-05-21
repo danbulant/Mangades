@@ -11,6 +11,7 @@
     import { slide } from "svelte/transition";
     import { Swiper, SwiperSlide } from 'swiper/svelte';
     import ArtList from "../../components/artList.svelte";
+    import SvelteMarkdown from 'svelte-markdown'
 
     export var scoped;
 
@@ -122,6 +123,7 @@
     var format = "cbz";
     var selected = [];
     function select(chapter) {
+        console.log("Selecting", chapter);
         if(selected.includes(chapter)) {
             selected.splice(selected.indexOf(chapter), 1);
         } else {
@@ -251,11 +253,11 @@
     let anilistData;
     $: anilistData = anilistInfo(title);
 
-    var selected = "Chapters";
+    var selectedTab = "Chapters";
     const tabs = ["Chapters", "Art", "More information"];
 
     $: {
-        if(swiper && tabs.indexOf(selected) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selected));
+        if(swiper && tabs.indexOf(selectedTab) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selectedTab));
     }
 
     let swiper;
@@ -263,8 +265,8 @@
         swiper = e.detail[0];
     }
     function swiperUpdate() {
-        if(selected !== tabs[swiper.realIndex])
-            selected = tabs[swiper.realIndex];
+        if(selectedTab !== tabs[swiper.realIndex])
+            selectedTab = tabs[swiper.realIndex];
     }
 </script>
 
@@ -310,7 +312,7 @@
                 <a href="/{relationships.find(t => t.related === "colored" && t.type === "manga").id}" class="block">Colored version</a>
             {/if}
             {#if manga.description.en}
-                <p>{manga.description.en}</p>
+                <p><SvelteMarkdown source={manga.description.en} isInline /></p>
             {/if}
         </div>
     </div>
@@ -333,7 +335,7 @@
 
     <br>
 
-    <Tabs list={tabs} bind:selected />
+    <Tabs list={tabs} bind:selected={selectedTab} />
 
     <Swiper
         on:init={swiperInit}
