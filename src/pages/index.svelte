@@ -2,6 +2,7 @@
 	import request from "../util/request";
     import { goto } from '@roxi/routify/runtime/helpers';
 	import { getUserDetails, getUserManga, isLogedIn } from "../util/anilist";
+	import Items from "../components/items.svelte";
     
 	var name = "";
 
@@ -25,8 +26,11 @@
 
 	const anilistID = "8375";
 
-	let userDetails = getUserDetails();
-	let userManga = getUserManga();
+	let userDetails = isLogedIn() && getUserDetails();
+	let userManga = isLogedIn() && getUserManga();
+	let listStyle = false;
+	
+	$: userManga.then(t => console.log(t));
 </script>
 
 <svelte:head>
@@ -57,20 +61,25 @@
 		<a href="https://mangadex.org">Mangadex.org</a>
 	</div>
 
-	{#if isLogedIn()}
-		{#await userManga then userManga}
-			{#each userManga.data.MediaListCollection.lists as list}
-				<h2>{list.name}</h2>
+	<div>
+		<label for="list-style">Show as list</label>
+		<input type="checkbox" name="list-style" id="list-style" bind:checked={listStyle}>
+	</div>
 
-				<div class="items">
-					{#each list.entries as entry}
-						<div class="item">
-							<img src={entry.media.coverImage.large} width=100 height=142 alt="{entry.media.title}">
-						</div>
-					{/each}
-				</div>
-			{/each}
-		{/await}
+		
+	{#if isLogedIn()}
+		<div>
+			{#await userManga then userManga}
+				{#each userManga.data.MediaListCollection.lists as list}
+					<h2>{list.name}</h2>
+					<Items entries={list.entries} itemsList={listStyle} />
+				{/each}
+			{/await}
+		</div>
+	{:else}
+		<p>
+			Sign in via Anilist to search for manga and view your manga list.
+		</p>
 	{/if}
 	
 	<hr>
@@ -97,20 +106,6 @@
 </main>
 
 <style lang="postcss">
-	.items {
-		display: grid;
-  		align-items: center;
-		gap: 1rem;
-		grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-	}
-	.item img {
-		border-radius: 5px;
-		height: 15rem;
-		width: auto;
-	}
-	.item h4 {
-		margin: 0;
-	}
 	.avatar {
 		border-radius: 999px;
 		height: 4rem;
