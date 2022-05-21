@@ -6,7 +6,7 @@
     let list;
     $: list = request("cover?manga[]=" + mangaId + "&locales[]=en&locales[]=uk&locales[]=ja");
 
-    $: list.then(data => console.log(data));
+    export var selectedImage = null;
 </script>
 
 <div>
@@ -14,7 +14,7 @@
         Loading art
     {:then list}
         {#each list.data.sort((a, b) => a.attributes.volume - b.attributes.volume) as item}
-            <img width=512 height=805 src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{item.attributes.fileName}.512.jpg" alt="">
+            <img on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${item.attributes.fileName}.512.jpg`} width=512 height=805 src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{item.attributes.fileName}.512.jpg" alt="">
         {/each}
     {/await}
 </div>
@@ -27,7 +27,7 @@
         justify-content: start;
         align-items: start;
     }
-    img {
+    div img {
         border-radius: 5px;
         height: 10rem;
         width: auto;

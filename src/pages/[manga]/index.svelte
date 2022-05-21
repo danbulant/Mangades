@@ -12,6 +12,7 @@
     import { Swiper, SwiperSlide } from 'swiper/svelte';
     import ArtList from "../../components/artList.svelte";
     import SvelteMarkdown from 'svelte-markdown'
+import ArtDialog from "../../components/artDialog.svelte";
 
     export var scoped;
 
@@ -268,6 +269,8 @@
         if(selectedTab !== tabs[swiper.realIndex])
             selectedTab = tabs[swiper.realIndex];
     }
+
+    var selectedImage = null;
 </script>
 
 <svelte:window on:beforeUnload={beforeUnload} />
@@ -282,6 +285,8 @@
         <img class="banner" src={data.bannerImage} alt="">
     {/if}
 {/await}
+
+<ArtDialog bind:selectedImage />
 
 <main>
 
@@ -397,7 +402,7 @@
         </SwiperSlide>
         <SwiperSlide>
             <div style="min-height: 30rem;">
-                <ArtList {mangaId} />
+                <ArtList {mangaId} bind:selectedImage />
             </div>
         </SwiperSlide>
         <SwiperSlide>
