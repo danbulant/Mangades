@@ -60,9 +60,9 @@
 		<a href="https://mangadex.org">Mangadex.org</a>
 	</div>
 
-	<ListOrGrid bind:list={listStyle} />
-		
 	{#if isLogedIn()}
+		<ListOrGrid bind:list={listStyle} />
+	
 		<div>
 			{#await userManga then userManga}
 				{#each userManga.data.MediaListCollection.lists as list}
