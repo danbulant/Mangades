@@ -3,6 +3,7 @@
     import { goto } from '@roxi/routify/runtime/helpers';
 	import { getUserDetails, getUserManga, isLogedIn } from "../util/anilist";
 	import Items from "../components/items.svelte";
+	import ListOrGrid from "../components/listOrGrid.svelte";
     
 	var name = "";
 
@@ -61,11 +62,7 @@
 		<a href="https://mangadex.org">Mangadex.org</a>
 	</div>
 
-	<div>
-		<label for="list-style">Show as list</label>
-		<input type="checkbox" name="list-style" id="list-style" bind:checked={listStyle}>
-	</div>
-
+	<ListOrGrid bind:list={listStyle} />
 		
 	{#if isLogedIn()}
 		<div>
