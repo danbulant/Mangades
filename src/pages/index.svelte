@@ -73,7 +73,7 @@
 		</div>
 	{:else}
 		<p>
-			Sign in via Anilist to search for manga and view your manga list.
+			Sign in via Anilist to view your manga list.
 		</p>
 	{/if}
 	
