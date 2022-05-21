@@ -25,7 +25,7 @@
 		$goto("./" + id);
 	}
 
-	const anilistID = "8375";
+	const anilistID = window.location.hostname === "localhost" ? "8375" : "8374";
 
 	let userDetails = isLogedIn() && getUserDetails();
 	let userManga = isLogedIn() && getUserManga();
