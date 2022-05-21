@@ -59,6 +59,7 @@
   "dependencies": {
     "fflate": "^0.6.10",
     "streamsaver": "^2.0.5",
+    "svelte-markdown": "^0.2.2",
     "swiper": "^8.1.5"
   }
 }
