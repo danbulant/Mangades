@@ -62,7 +62,7 @@ export class BaseGenerator {
     async fetchImage(url, chapter) {
         var res;
         try {
-            res = await fetch("https://cors-anywhere.danbulant.workers.dev/?" + url);
+            res = await fetch("https://cors-anywhere.danbulant.cloud/" + url);
         } catch(e) {
             console.error(e);
             res = await fetch(proxy + url);

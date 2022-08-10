@@ -14,7 +14,7 @@
         <a href="/{entry.id}" class="item" class:r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)} on:click={() => open(entry)}>
             <div class="flex">
                 {#if entry.relationships.find(t => t.type === "cover_art")}
-                    <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{entry.id}/{entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+                    <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.cloud/https://uploads.mangadex.org/covers/{entry.id}/{entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
                 {:else}
                     Broken art
                 {/if}

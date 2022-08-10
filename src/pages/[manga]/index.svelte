@@ -306,7 +306,7 @@
 
     <div class="flex">
         {#if relationships.find(t => t.type === "cover_art")}
-            <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+            <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="https://cors-anywhere.danbulant.cloud/https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.cloud/https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
         {/if}
         <div class="info">
             {#if relationships.find(t => t.type === "author")}
