@@ -306,7 +306,7 @@
 
     <div class="flex">
         {#if relationships.find(t => t.type === "cover_art")}
-            <img class="cover" class:r18={!["safe", "suugestive"].includes(manga.contentRating)} draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+            <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://cors-anywhere.danbulant.workers.dev/?https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
         {/if}
         <div class="info">
             {#if relationships.find(t => t.type === "author")}
@@ -434,8 +434,9 @@
                                     colored: "Colored version",
                                     monochrome: "Monochrome version",
                                     adapted_from: "Adapted from",
-                                    based_on: "Based on"
-                                }[relatedManga.related]}</a> <br>
+                                    based_on: "Based on",
+				    shared_universe: "Shared universe"
+                                }[relatedManga.related] || relatedManga.related}</a> <br>
                             {/each}
                         </div>
                     {/if}

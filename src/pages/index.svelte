@@ -122,7 +122,10 @@ import MangadexItems from '../components/mangadexItems.svelte';
 	</div>
 
 	<div class="flex">
-		<button on:click={randomManga} disabled={randomMangaLoading}>Random</button>
+		<div>
+			<button on:click={randomManga} disabled={randomMangaLoading}>Random</button>
+			<a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
+		</div>
 		{#if isLogedIn()}
 			{#await userDetails then userDetails}
 				<a href="https://anilist.co/user/{userDetails.data.User.name}" target="_blank">
