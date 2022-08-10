@@ -434,8 +434,9 @@
                                     colored: "Colored version",
                                     monochrome: "Monochrome version",
                                     adapted_from: "Adapted from",
-                                    based_on: "Based on"
-                                }[relatedManga.related]}</a> <br>
+                                    based_on: "Based on",
+				    shared_universe: "Shared universe"
+                                }[relatedManga.related] || relatedManga.related}</a> <br>
                             {/each}
                         </div>
                     {/if}
