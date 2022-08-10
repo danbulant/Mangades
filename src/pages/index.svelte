@@ -6,7 +6,7 @@
 	import AnilistItems from "../components/anilistItems.svelte";
 	import ListOrGrid from "../components/listOrGrid.svelte";
 	import ratelimit from '../util/ratelimit';
-import MangadexItems from '../components/mangadexItems.svelte';
+	import MangadexItems from '../components/mangadexItems.svelte';
     
 	var name = $params.search;
     $: {
@@ -67,11 +67,13 @@ import MangadexItems from '../components/mangadexItems.svelte';
 	 */
 	async function scroll(e) {
 		if(scrollSearch !== null) return;
-		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 800 && (await result).data.length < (await result).total) {
+		const resulted = await result;
+		if(!resulted || !resulted.data) return;
+		if(document.body.scrollHeight - window.scrollY - window.innerHeight < 800 && resulted.data.length < resulted.total) {
 			scrollSearch = name;
-			const res = await search(name, filters, (await result).data.length);
+			const res = await search(name, filters, resulted.data.length);
 			if(scrollSearch === name && res.data.length) {
-				(await result).data.push(...res.data);
+				resulted.data.push(...res.data);
 				result = result; // trigger reload
 			}
 			setTimeout(() => {
