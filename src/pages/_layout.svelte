@@ -1,5 +1,17 @@
 <script>
     import { logs } from "../util/logs";
+    import { afterPageLoad } from "@roxi/routify";
+
+    let skipFirst = true;
+    $afterPageLoad(page => {
+        if(skipFirst) return skipFirst = false;
+        if(window.goatcounter) window.goatcounter.count({
+            path: page.path,
+            title: page.title,
+            referrer: page.prev.path
+        });
+        else console.warn("Page change; GoatCounter not loaded (yet?)", page.path);
+    })
 </script>
 
 <!-- routify:options preload="proximity" -->

@@ -20,7 +20,7 @@
     "build:static": "spank",
     "serve": "spassr --ssr",
     "rollup": "rollup -cw",
-    "nollup": "nollup -c --verbose",
+    "nollup": "nollup -c --verbose --host 0.0.0.0",
     "routify": "routify"
   },
   "devDependencies": {
