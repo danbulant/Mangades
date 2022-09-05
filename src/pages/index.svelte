@@ -7,13 +7,17 @@
 	import ListOrGrid from "../components/listOrGrid.svelte";
 	import ratelimit from '../util/ratelimit';
 	import MangadexItems from '../components/mangadexItems.svelte';
-    
+
+	/** @type {string} */
 	var name = $params.search;
     $: {
         const url = new URL(window.location.toString());
         url.searchParams.set("search", name || "");
         history.replaceState(history.state, "", url.toString());
     }
+
+	var allowNSFW = false;
+
 	const filters = {
 		contentRating: ["safe", "suggestive"],
 		demographic: [],
@@ -21,6 +25,9 @@
 		sort: "updatedAt",
 		sortValue: "desc"
 	};
+
+	filters.contentRating = allowNSFW ? [] : ["safe", "suggestive"];
+
     /**
      * Searches for results
      * @param {string} title
@@ -91,16 +98,17 @@
 
 	function open() {
 		var id = name;
-		if(name.startsWith("https://mangadex.org/title/")) {
-			id = name.substring("https://mangadex.org/title/".length);
-			id = id.split("/")[0];
-		} else if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(name)) {
+		if(id.startsWith("https://mangadex.org/title/")) {
+			id = id.substring("https://mangadex.org/title/".length);
+			id = id.match(/[^\/?#]*/)[0];
+		}
+		if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
 			return alert("You provided invalid ID or link. Make sure you copy the full URL from mangadex.org title page");
 		}
 		$goto("./" + id);
 	}
 
-	const anilistID = window.location.hostname === "localhost" ? "8375" : "8374";
+	const anilistID = window.location.hostname === "manga.danbulant.eu" ? "8374" : "8375";
 
 	let userDetails = isLogedIn() && getUserDetails();
 	let userManga = isLogedIn() && getUserManga();
@@ -124,10 +132,7 @@
 	</div>
 
 	<div class="flex">
-		<div>
-			<button on:click={randomManga} disabled={randomMangaLoading}>Random</button>
-			<a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
-		</div>
+		<button on:click={randomManga} disabled={randomMangaLoading}>Random</button>
 		{#if isLogedIn()}
 			{#await userDetails then userDetails}
 				<a href="https://anilist.co/user/{userDetails.data.User.name}" target="_blank">
@@ -141,7 +146,17 @@
 	</div>
 
 	{#if isLogedIn()}
-		<ListOrGrid bind:list={listStyle} />
+		<div class="nsfw">
+			<input id="nsfw" type="checkbox" bind:checked={allowNSFW}>
+			<label for="nsfw">
+				Allow NSFW
+			</label>
+		</div>
+
+		<div class="flex">
+			<a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
+			<ListOrGrid bind:list={listStyle} />
+		</div>
 	
 		{#if result}
 			<h2>Search results</h2>
@@ -162,7 +177,7 @@
 		{/if}
 	{:else}
 		<p>
-			Sign in via Anilist to view your manga list and search for manga online.
+			Sign in via Anilist to view your manga list and search for manga online. You can still read manga or download it without signing in using direct mangadex URLs.
 		</p>
 	{/if}
 	
@@ -190,6 +205,10 @@
 </main>
 
 <style lang="postcss">
+	.nsfw > input, .nsfw > label {
+		display: inline-block;
+		width: auto;
+	}
 	.avatar {
 		border-radius: 999px;
 		height: 4rem;

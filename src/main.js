@@ -27,7 +27,12 @@ function display(formatted, type) {
 const error = console.error.bind(console);
 window.console.error = (...args) => {
     error(...args);
-    display(JSON.stringify(args), "error");
+    args = args.map(arg => {
+        if(typeof arg === "string") return arg;
+        if(arg instanceof Error) return arg.message + "\n" + arg.stack;
+        return JSON.stringify(arg);
+    });
+    display(args.join("\n"), "error");
 }
 
 window.onerror = (event, SourceBuffer, line, col, error) => {

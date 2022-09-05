@@ -20,9 +20,7 @@
 {#if $logs.length}
     <div class="flow">
         {#each $logs as item}
-            <div class="item {item.type}">
-                {item.text}
-            </div>
+            <pre class="item {item.type}">{item.text}</pre>
         {/each}
     </div>
 {/if}
@@ -36,5 +34,8 @@
         border-radius: 5px 0 0 0;
         padding: 5px;
         box-shadow: 0 0 2px 0 black;
+    }
+    pre {
+        white-space: pre-wrap;
     }
 </style>

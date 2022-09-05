@@ -1,6 +1,7 @@
 <script>
-    import request from "../util/request";
     import { goto } from '@roxi/routify/runtime/helpers';
+	import autoAnimate from "@formkit/auto-animate";
+    import request from "../util/request";
 
     export var entries;
     export var itemsList;
@@ -12,7 +13,15 @@
         query.set("title", entry.media.title.romaji);
         query.set("limit", 20);
         console.log(entry);
-        const result = await request("manga", query);
+        let result;
+        try {
+            result = await request("manga", query);
+        } catch(e) {
+            console.error(e);
+            isLoading = false;
+            alert("Failed to search mangadex.");
+            return;
+        }
         console.log(result.data);
         let item = result.data.find(t => t.attributes.links.al === entry.media.id.toString());
         if(!item) item = result.data.find(t => t.attributes.title.en?.toLowerCase() === entry.media.title.english.toLowerCase());
@@ -20,7 +29,7 @@
         if(!item) item = result.data.find(t => t.attributes.altTitles.find(t => Object.values(t).find(t => t.toLowerCase() === entry.media.title.native.toLowerCase())));
         console.log(item);
         if(!item) {
-            alert(`Couldn't find any mangadex entry`);
+            alert(`Couldn't find any mangadex entry.`);
             isLoading = false;
             return
         }
@@ -34,11 +43,11 @@
     </dialog>
 {/if}
 
-<div class="items" class:items-list={itemsList}>
+<div class="items" class:items-list={itemsList} use:autoAnimate>
     {#each entries.sort((a, b) => a.priority - b.priority) as entry}
         <div class="item" class:r18={entry.media.isAdult} on:click={() => find(entry)}>
             <div class="flex">
-                <img src={entry.media.coverImage.large} width=100 height=142 alt="{entry.media.title.userPreferred}">
+                <img src={entry.media.coverImage.large} width=100 height=142 alt="{entry.media.title.userPreferred}" title="{entry.media.title.userPreferred}">
                 <div class="info">
                     <h3>{entry.media.title.userPreferred}</h3>
                     <span>[{entry.progress}/{entry.media.chapters || "?"}]</span> <br>

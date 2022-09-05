@@ -1,5 +1,7 @@
 <script>
     import SvelteMarkdown from "svelte-markdown";
+	import autoAnimate from "@formkit/auto-animate";
+
     export var entries;
     export var itemsList;
 
@@ -9,17 +11,18 @@
 </script>
 
 
-<div class="items" class:items-list={itemsList}>
+<div class="items" class:items-list={itemsList} use:autoAnimate>
     {#each entries as entry}
+        {@const title = entry.attributes.title.en || entry.attributes.title.ja || Object.values(entry.attributes.title)[0]}
         <a href="/{entry.id}" class="item" class:r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)} on:click={() => open(entry)}>
             <div class="flex">
                 {#if entry.relationships.find(t => t.type === "cover_art")}
-                    <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.cloud/https://uploads.mangadex.org/covers/{entry.id}/{entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+                    <img class="cover" draggable="false" src="https://cors-anywhere.danbulant.cloud/https://uploads.mangadex.org/covers/{entry.id}/{entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="{title}" {title}>
                 {:else}
                     Broken art
                 {/if}
                 <div class="info">
-                    <h3>{entry.attributes.title.en || entry.attributes.title.ja || Object.values(entry.attributes.title)[0]}</h3>
+                    <h3>{title}</h3>
                     {#if entry.attributes.lastChapter}
                         <span>CH {entry.attributes.lastChapter}</span>
                     {/if}
