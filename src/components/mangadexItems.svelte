@@ -1,7 +1,7 @@
 <script>
     import SvelteMarkdown from "svelte-markdown";
 	import autoAnimate from "@formkit/auto-animate";
-    import { imageproxy } from "../utils/request";
+    import { imageproxy } from "../util/request";
 
     export var entries;
     export var itemsList;
