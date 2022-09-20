@@ -10,7 +10,7 @@
  * @property {string} title
  */
 
-import request, { proxy } from "./request";
+import request, { proxy, imageproxy } from "./request";
 
 const RETRY_LIMIT = 10;
 
@@ -62,7 +62,7 @@ export class BaseGenerator {
     async fetchImage(url, chapter) {
         var res;
         try {
-            res = await fetch("https://cors-anywhere.danbulant.cloud/" + url);
+            res = await fetch(imageproxy + url);
         } catch(e) {
             console.error(e);
             res = await fetch(proxy + url);
