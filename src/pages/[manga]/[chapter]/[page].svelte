@@ -1,6 +1,6 @@
 <script>
     import { goto, url } from "@roxi/routify/runtime/helpers";
-    import { imageproxy } from "../../../util/request";
+    import { imageproxy, proxy } from "../../../util/request";
 
     export var page;
     export var scoped;
@@ -177,6 +177,7 @@
 
         ratio = imageHeight / imageWidth - 3;
     }
+    
 </script>
 
 <svelte:window on:keydown={keydown} on:keyup={keyup} on:resize={isZooming} />
@@ -190,7 +191,7 @@
     <a class="back" href={$url("../..")}>Back to chapter list</a>
 </div>
 
-<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${imageproxy}/${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
+<img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${imageproxy}${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
 
 <div class="bottom">
     {#if page > 1}
