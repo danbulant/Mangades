@@ -252,7 +252,7 @@
     }
 
     let anilistData;
-    $: anilistData = manga.links.al && anilistInfo(manga.links.al);
+    $: anilistData = manga.links && manga.links.al && anilistInfo(manga.links.al);
 
     var selectedTab = "Chapters";
     const tabs = ["Chapters", "Art", "More information"];
@@ -440,43 +440,45 @@
                             {/each}
                         </div>
                     {/if}
-                    <div>
-                        <h4>Links</h4>
+                    {#if manga.links}
+                        <div>
+                            <h4>Links</h4>
 
-                        {#if manga.links.al}
-                            <a href="https://anilist.co/manga/{manga.links.al}">Anilist</a> <br>
-                        {/if}
-                        {#if manga.links.ap}
-                            <a href="https://www.anime-planet.com/manga/{manga.links.ap}">Animeplanet</a> <br>
-                        {/if}
-                        {#if manga.links.bw}
-                            <a href="https://bookwalker.jp/{manga.links.bw}">Bookwalker</a> <br>
-                        {/if}
-                        {#if manga.links.mu}
-                            <a href="https://www.mangaupdates.com/series.html?id={manga.links.mu}">Manga updates</a> <br>
-                        {/if}
-                        {#if manga.links.nu}
-                            <a href="https://www.novelupdates.com/series/{manga.links.nu}">Novel updates</a> <br>
-                        {/if}
-                        {#if manga.links.amz}
-                            <a href={manga.links.amz}>Amazon</a> <br>
-                        {/if}
-                        {#if manga.links.ebj}
-                            <a href={manga.links.ebj}>Ebookjapan</a> <br>
-                        {/if}
-                        {#if manga.links.mal}
-                            <a href="https://myanimelist.net/manga/{manga.links.mal}">MyAnimeList</a> <br>
-                        {/if}
-                        {#if manga.links.cdj}
-                            <a href="{manga.links.cdj}">CDJapan</a> <br>
-                        {/if}
-                        {#if manga.links.raw}
-                            <a href="{manga.links.raw}">RAW</a> <br>
-                        {/if}
-                        {#if manga.links.engtl}
-                            <a href="{manga.links.engtl}">engtl</a> <br>
-                        {/if}
-                    </div>
+                            {#if manga.links.al}
+                                <a href="https://anilist.co/manga/{manga.links.al}">Anilist</a> <br>
+                            {/if}
+                            {#if manga.links.ap}
+                                <a href="https://www.anime-planet.com/manga/{manga.links.ap}">Animeplanet</a> <br>
+                            {/if}
+                            {#if manga.links.bw}
+                                <a href="https://bookwalker.jp/{manga.links.bw}">Bookwalker</a> <br>
+                            {/if}
+                            {#if manga.links.mu}
+                                <a href="https://www.mangaupdates.com/series.html?id={manga.links.mu}">Manga updates</a> <br>
+                            {/if}
+                            {#if manga.links.nu}
+                                <a href="https://www.novelupdates.com/series/{manga.links.nu}">Novel updates</a> <br>
+                            {/if}
+                            {#if manga.links.amz}
+                                <a href={manga.links.amz}>Amazon</a> <br>
+                            {/if}
+                            {#if manga.links.ebj}
+                                <a href={manga.links.ebj}>Ebookjapan</a> <br>
+                            {/if}
+                            {#if manga.links.mal}
+                                <a href="https://myanimelist.net/manga/{manga.links.mal}">MyAnimeList</a> <br>
+                            {/if}
+                            {#if manga.links.cdj}
+                                <a href="{manga.links.cdj}">CDJapan</a> <br>
+                            {/if}
+                            {#if manga.links.raw}
+                                <a href="{manga.links.raw}">RAW</a> <br>
+                            {/if}
+                            {#if manga.links.engtl}
+                                <a href="{manga.links.engtl}">engtl</a> <br>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </SwiperSlide>
