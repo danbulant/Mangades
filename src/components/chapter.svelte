@@ -26,7 +26,7 @@
     }
 </script>
 
-<tr on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
+<tr class="chapter item" on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
     <td class="no-wrap">{chapter.attributes.volume ? "Vol " + chapter.attributes.volume : ""}</td>
     <td class="no-wrap">{chapter.attributes.chapter ? "Chapter " + chapter.attributes.chapter : ""}</td>
     <td>
@@ -55,11 +55,20 @@
     tr.selected {
         background: rgba(0,0,0,0.15);
     }
+    :global(.dark tr.chapter.item.selected) {
+        background: rgba(255,255,255,0.15);
+    }
     tr:hover {
         background: rgba(0,0,0,0.2);
     }
+    :global(.dark tr.chapter.item:hover) {
+        background: rgba(255,255,255,0.2);
+    }
     tr.selected:hover {
         background: rgba(0,0,0,0.25);
+    }
+    :global(.dark tr.chapter.item.selected:hover) {
+        background: rgba(255,255,255,0.25);
     }
     .no-wrap {
         white-space: nowrap;
@@ -77,6 +86,9 @@
         user-select: none;
         text-align: right;
         padding-right: 10px;
+    }
+    :global(.dark td.action.no-wrap) {
+        color: white;
     }
 
     td.action:hover {

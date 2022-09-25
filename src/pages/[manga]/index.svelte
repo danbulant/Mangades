@@ -560,12 +560,18 @@
         background: rgb(214, 214, 214);
         border-radius: 5px 0 5px 5px;
     }
+    :global(.dark main > .copyright.copyright.copyright) {
+        background: rgb(64, 64, 64);
+    }
     .copyright-header {
         background: rgb(214, 214, 214);
         padding: 10px;
         border-radius: 5px;
         user-select: none;
         cursor: pointer;
+    }
+    :global(.dark main > .flex .copyright-header) {
+        background: rgb(64, 64, 64);
     }
     .copyright-header-active {
         border-radius: 5px 5px 0 0;
@@ -604,6 +610,9 @@
         padding: 10px;
         position: relative;
         transition: all .3s;
+    }
+    :global(.dark .state) {
+        color: black;
     }
 
     .state.idle {
