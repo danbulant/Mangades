@@ -33,7 +33,7 @@
         <div class="title">{chapter.attributes.title || " "}</div>
         <div class="scanlation">{scanlationGroup || "Unknown group"}</div>
     </td>
-    <td class="action no-wrap"><a href={$url("./" + chapter.id)} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
+    <td class="action no-wrap"><a href={$url("./" + chapter.id + "/1")} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
 </tr>
 
 <style lang="postcss">
