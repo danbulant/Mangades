@@ -3,14 +3,16 @@
     import { afterPageLoad } from "@roxi/routify";
 
     let skipFirst = true;
+    let last = window.location.pathname;
     $afterPageLoad(page => {
         if(skipFirst) return skipFirst = false;
         if(window.goatcounter) window.goatcounter.count({
-            path: page.path,
+            path: window.location.pathname,
             title: page.title,
-            referrer: page.prev.path
+            referrer: last
         });
-        else console.warn("Page change; GoatCounter not loaded (yet?)", page.path);
+        else console.warn("Page change; GoatCounter not loaded (yet?)", window.location.pathname);
+        last = window.location.pathname;
     })
 </script>
 
