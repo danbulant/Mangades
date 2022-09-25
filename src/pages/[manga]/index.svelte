@@ -26,7 +26,7 @@
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
     async function getMangaChapters(id) {
-        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en&translatedLanguage[]=uk&includes[]=scanlation_group");
+        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en&translatedLanguage[]=uk&includes[]=scanlation_group&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic");
         console.log(data);
         data.data = data.data
             .filter(item => !item.attributes?.externalUrl)
