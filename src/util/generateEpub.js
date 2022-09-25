@@ -48,6 +48,7 @@ export class EpubGenerator extends BaseGenerator {
 
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
+            if(chapter.number == null || chapter.number == undefined) chapter.number = chapterI;
             for(const i in chapter.links) {
                 let url = chapter.links[i];
                 let hash = chapter.hashes[i];

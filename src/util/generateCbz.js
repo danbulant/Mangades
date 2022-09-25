@@ -21,7 +21,6 @@ export class CBZGenerator extends BaseGenerator {
         };
 
         this.hashes = this.opts.chapters.map(t => t.links).flat();
-
         const chapterCountLength = this.opts.chapters.reduce((a, b) => Math.max(a.number, b.number), 0).toString().length;
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
@@ -30,6 +29,9 @@ export class CBZGenerator extends BaseGenerator {
                 chapter.links = data.urls;
                 chapter.hashes = data.hashes;
                 chapter.hash = data.hash;
+            }
+            if(typeof chapter.number == "undefined" || chapter.number == null) {
+                chapter.number = chapterI;
             }
             const imageCountLength = chapter.links.length.toString().length;
             for(const i in chapter.links) {
