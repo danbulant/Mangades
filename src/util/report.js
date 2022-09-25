@@ -10,7 +10,8 @@ export const base = "https://api.mangadex.network/";
  * @param {boolean} body.cached
  */
 async function report(body) {
-    return;
+    // return console.log("Should report", body);
+    if(body.url.includes("uploads.mangadex.org")) return;
     await fetch(base + "report", {
         method: "POST",
         headers: {
