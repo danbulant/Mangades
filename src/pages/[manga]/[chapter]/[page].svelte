@@ -5,16 +5,12 @@
     export var page;
     export var scoped;
 
-    console.log("scoped", scoped);
-
     var chapter = scoped.chapter;
     $: chapter = scoped.chapter;
-    console.log("chapter", chapter);
     var manga = scoped.manga;
     $: manga = scoped.manga;
     var atHome = scoped.atHome;
     $: atHome = scoped.atHome;
-    console.log("athome", atHome);
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
@@ -86,17 +82,25 @@
      */
     function mouseclick(e) {
         if(xDown !== null) return;
+        console.log(e.buttons);
         if(e.buttons & 8) {
             e.preventDefault();
+            e.stopPropagation();
             prev();
         }
         if(e.buttons & 16) {
             e.preventDefault();
+            e.stopPropagation();
             next();
         }
         if(e.buttons & 1) {
             e.preventDefault();
-            next();
+            // if clicked in the left quarter of the screen go to previous page
+            if(e.clientX < window.innerWidth / 4) {
+                prev();
+            } else {
+                next();
+            }
         }
     }
 
@@ -104,9 +108,10 @@
      * @param {MouseEvent} e
      */
     function preventDefault(e) {
-        if([1, 3, 4].includes(e.button)) {
+        if([1, 3, 4, 8, 16].includes(e.button)) {
             console.log("Preventing default");
             e.preventDefault();
+            e.stopPropagation();
         }
     }
 
