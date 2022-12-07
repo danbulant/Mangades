@@ -1,16 +1,17 @@
-<script>
-    import { params } from '@roxi/routify';
-	import request from "../util/request";
-    import { goto } from '@roxi/routify/runtime/helpers';
-	import { getUserDetails, getUserManga, isLogedIn } from "../util/anilist";
-	import AnilistItems from "../components/anilistItems.svelte";
-	import ListOrGrid from "../components/listOrGrid.svelte";
-	import ratelimit from '../util/ratelimit';
-	import MangadexItems from '../components/mangadexItems.svelte';
+<script lang="ts">
+	import request from "$lib/util/request";
+	import { getUserDetails, getUserManga, isLogedIn } from "$lib/util/anilist";
+	import AnilistItems from "$lib/components/anilistItems.svelte";
+	import ListOrGrid from "$lib/components/listOrGrid.svelte";
+	import ratelimit from '$lib/util/ratelimit';
+	import MangadexItems from '$lib/components/mangadexItems.svelte';
+    import { goto } from "$app/navigation";
 
-	/** @type {string} */
-	var name = $params.search;
-    $: {
+    import type { load } from "./+page";
+    export var data: Awaited<ReturnType<typeof load>>;
+
+	var name: string = data.url.searchParams.get("search") || "";
+    $: if(typeof window !== "undefined") {
         const url = new URL(window.location.toString());
         url.searchParams.set("search", name || "");
         history.replaceState(history.state, "", url.toString());
@@ -36,8 +37,8 @@
     async function search(title, filters, offset=0) {
         var query = new URLSearchParams();
         if(title) query.set("title", title);
-		query.set("limit", 100);
-		query.set("offset", offset);
+		query.set("limit", "100");
+		query.set("offset", offset.toString());
 		query.append("includes[]", "author");
 		query.append("includes[]", "cover_art");
 		query.append("includes[]", "artist");
@@ -93,7 +94,7 @@
 	async function randomManga() {
 		randomMangaLoading = true;
 		const res = await request("manga/random");
-		$goto("./" + res.data.id);
+		goto("./" + res.data.id);
 	}
 
 	function open() {
@@ -105,10 +106,10 @@
 		if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
 			return alert("You provided invalid ID or link. Make sure you copy the full URL from mangadex.org title page");
 		}
-		$goto("./" + id);
+		goto("./" + id);
 	}
 
-	const anilistID = window.location.hostname === "manga.danbulant.eu" ? "8374" : "8375";
+	const anilistID = data.url.hostname === "manga.danbulant.eu" ? "8374" : "8375";
 
 	let userDetails = isLogedIn() && getUserDetails();
 	let userManga = isLogedIn() && getUserManga();

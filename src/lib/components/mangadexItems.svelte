@@ -1,7 +1,6 @@
 <script>
     import SvelteMarkdown from "svelte-markdown";
-	import autoAnimate from "@formkit/auto-animate";
-    import { imageproxy } from "../util/request";
+    import { imageproxy } from "$lib/util/request";
 
     export var entries;
     export var itemsList;
@@ -12,7 +11,7 @@
 </script>
 
 
-<div class="items" class:items-list={itemsList} use:autoAnimate>
+<div class="items" class:items-list={itemsList}>
     {#each entries as entry}
         {@const title = entry.attributes.title.en || entry.attributes.title.ja || Object.values(entry.attributes.title)[0]}
         <a href="/{entry.id}" class="item" class:r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)} on:click={() => open(entry)}>

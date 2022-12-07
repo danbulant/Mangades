@@ -1,0 +1,4 @@
+/*
+    Content-Security-Policy: default-src 'self'
+    X-Content-Type-Options: nosniff
+    cache-control: public, max-age=3600, must-revalidate

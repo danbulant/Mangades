@@ -1,5 +1,5 @@
 <script>
-    import request from "../../../util/request";
+    import request from "$lib/util/request";
 
     export var scoped;
     export var chapter;

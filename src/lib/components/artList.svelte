@@ -1,5 +1,5 @@
 <script>
-    import request, { imageproxy } from "../util/request";
+    import request, { imageproxy } from "$lib/util/request";
 
     export var mangaId;
 

@@ -1,27 +1,26 @@
 <script>
-    import { url } from "@roxi/routify/runtime/helpers";
-    import Chapter from "../../components/chapter.svelte";
-    import { EpubGenerator } from "../../util/generateEpub";
-    import { CBZGenerator } from "../../util/generateCbz";
-    import request, { imageproxy } from "../../util/request";
-    import { BaseGenerator } from "../../util/baseGenerator";
-    import { arraysEqual } from "../../util/arrays";
-    import { makeRequest } from "../../util/anilist";
-    import Tabs from "../../components/tabs/tabs.svelte";
+    import Chapter from "$lib/components/chapter.svelte";
+    import { EpubGenerator } from "$lib/util/generateEpub";
+    import { CBZGenerator } from "$lib/util/generateCbz";
+    import request, { imageproxy } from "$lib/util/request";
+    import { BaseGenerator } from "$lib/util/baseGenerator";
+    import { arraysEqual } from "$lib/util/arrays";
+    import { makeRequest } from "$lib/util/anilist";
+    import Tabs from "$lib/components/tabs/tabs.svelte";
     import { slide } from "svelte/transition";
     import { Swiper, SwiperSlide } from 'swiper/svelte';
-    import ArtList from "../../components/artList.svelte";
+    import ArtList from "$lib/components/artList.svelte";
     import SvelteMarkdown from 'svelte-markdown';
-    import ArtDialog from "../../components/artDialog.svelte";
+    import ArtDialog from "$lib/components/artDialog.svelte";
 
-    export var scoped;
+    export var data;
 
-    var mangaId = scoped.id;
-    $: mangaId = scoped.id;
-    var manga = scoped.manga;
-    $: manga = scoped.manga;
-    var relationships = scoped.mangaRelationships;
-    $: relationships = scoped.mangaRelationships;
+    var mangaId = data.id;
+    $: mangaId = data.id;
+    var manga = data.manga;
+    $: manga = data.manga;
+    var relationships = data.mangaRelationships;
+    $: relationships = data.mangaRelationships;
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
@@ -261,7 +260,7 @@
         if(swiper && tabs.indexOf(selectedTab) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selectedTab));
     }
 
-    $: chapters && chapters.then(() => swiper.slideToClosest())
+    $: typeof window !== "undefined" && chapters && chapters.then(() => swiper.slideToClosest())
 
     let swiper;
     function swiperInit(e) {
@@ -326,7 +325,7 @@
 
     <div class="flex">
         <div class="linklist">
-            <a href={$url("..")}>Go back to search page</a> <br>
+            <a href="..">Go back to search page</a> <br>
             <a href="https://mangadex.org/title/{mangaId}">Mangadex.org</a>
         </div>
         <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
@@ -435,7 +434,7 @@
                                     monochrome: "Monochrome version",
                                     adapted_from: "Adapted from",
                                     based_on: "Based on",
-				    shared_universe: "Shared universe"
+				                    shared_universe: "Shared universe"
                                 }[relatedManga.related] || relatedManga.related}</a> <br>
                             {/each}
                         </div>

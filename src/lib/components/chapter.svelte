@@ -1,5 +1,4 @@
 <script>
-    import { url } from "@roxi/routify/runtime/helpers";
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
@@ -24,6 +23,7 @@
             dispatch("select", e);
         }
     }
+    console.log("ch", chapter);
 </script>
 
 <tr class="chapter item" on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
@@ -33,7 +33,7 @@
         <div class="title">{chapter.attributes.title || " "}</div>
         <div class="scanlation">{scanlationGroup || "Unknown group"}</div>
     </td>
-    <td class="action no-wrap"><a href={$url("./" + chapter.id + "/1")} on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
+    <td class="action no-wrap"><a href="./{chapter.id}/1" on:click|stopPropagation={() => !disabledDownload && dispatch("view")}>View</a></td>
 </tr>
 
 <style lang="postcss">

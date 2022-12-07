@@ -1,5 +1,6 @@
 
 export function isLogedIn() {
+    if(typeof window === "undefined") return;
     const token = localStorage.getItem("token");
     const expiration = new Date(localStorage.getItem("expiration"));
 

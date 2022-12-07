@@ -1,6 +1,5 @@
 <script>
-    import { goto } from '@roxi/routify/runtime/helpers';
-	import autoAnimate from "@formkit/auto-animate";
+    import { goto } from "$app/navigation";
     import request from "../util/request";
 
     export var entries;
@@ -33,7 +32,7 @@
             isLoading = false;
             return
         }
-        $goto("./" + item.id);
+        goto("./" + item.id);
     }
 </script>
 
@@ -43,7 +42,7 @@
     </dialog>
 {/if}
 
-<div class="items" class:items-list={itemsList} use:autoAnimate>
+<div class="items" class:items-list={itemsList}>
     {#each entries.sort((a, b) => a.priority - b.priority) as entry}
         <div class="item" class:r18={entry.media.isAdult} on:click={() => find(entry)}>
             <div class="flex">

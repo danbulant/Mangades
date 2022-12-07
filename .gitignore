@@ -8,3 +8,9 @@ pnpm-lock.yaml
 
 .env
 dist
+.svelte-kit
+/package
+/build
+.env
+.env.*
+!.env.example

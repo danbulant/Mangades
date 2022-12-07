@@ -1,32 +1,31 @@
 <script>
-    import { logs } from "../util/logs";
-    import { afterPageLoad } from "@roxi/routify";
+    import { logs } from "$lib/util/logs";
 
-    let skipFirst = true;
-    let last = window.location.pathname;
-    $afterPageLoad(page => {
-        if(skipFirst) return skipFirst = false;
-        if(window.goatcounter) window.goatcounter.count({
-            path: window.location.pathname,
-            title: page.title,
-            referrer: last
-        });
-        else console.warn("Page change; GoatCounter not loaded (yet?)", window.location.pathname);
-        last = window.location.pathname;
-    });
+    // let skipFirst = true;
+    // let last = window.location.pathname;
+    // $afterPageLoad(page => {
+    //     if(skipFirst) return skipFirst = false;
+    //     if(window.goatcounter) window.goatcounter.count({
+    //         path: window.location.pathname,
+    //         title: page.title,
+    //         referrer: last
+    //     });
+    //     else console.warn("Page change; GoatCounter not loaded (yet?)", window.location.pathname);
+    //     last = window.location.pathname;
+    // });
     
-    let defaultDarkmode = window && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    window && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+    let defaultDarkmode = typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         if(defaultDarkmode == darkmode) {
             darkmode = event.matches;
             defaultDarkmode = event.matches;
         }
     });
-    let darkmode = localStorage && localStorage.getItem("darkmode") || defaultDarkmode;
+    let darkmode = typeof localStorage !== "undefined" && localStorage.getItem("darkmode") || defaultDarkmode;
 
-    $: if(localStorage && darkmode !== defaultDarkmode) localStorage.setItem("darkmode", darkmode);
+    $: if(typeof localStorage !== "undefined" && darkmode !== defaultDarkmode) localStorage.setItem("darkmode", darkmode);
 
-    $: if(darkmode) {
+    $: if(typeof window !== "undefined") if(darkmode) {
         document.body.classList.add("dark");
     } else {
         document.body.classList.remove("dark");

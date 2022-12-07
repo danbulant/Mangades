@@ -1,18 +1,33 @@
-<script>
-    import { goto, url } from "@roxi/routify/runtime/helpers";
-    import { imageproxy, proxy } from "../../../util/request";
+<script lang="ts">
+    import { goto, preloadData } from "$app/navigation";
+    import { imageproxy, proxy } from "$lib/util/request";
+    import { onMount } from "svelte";
 
-    export var page;
-    export var scoped;
+    export var data;
 
-    var chapter = scoped.chapter;
-    $: chapter = scoped.chapter;
-    var manga = scoped.manga;
-    $: manga = scoped.manga;
-    var atHome = scoped.atHome;
-    $: atHome = scoped.atHome;
+    var chapter = data.chapter;
+    $: chapter = data.chapter;
+    var page = data.page;
+    $: page = data.page;
+    var manga = data.manga;
+    $: manga = data.manga;
+    var atHome = data.atHome;
+    $: atHome = data.atHome;
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
+
+    // $: if(last !== -1) preloadPage(page + 1);
+
+    // onMount(() => preloadPage(page + 1));
+
+    // let last = -1;
+    // function preloadPage(num: number) {
+    //     if(last === num) return;
+    //     if(typeof window === "undefined") return;
+    //     preloadData("./" + num);
+    //     (new Image()).src = `${imageproxy}${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][num - 1]}`;
+    //     last = num;
+    // }
 
     var quality = "data";
 
@@ -62,7 +77,7 @@
     function next() {
         if(!image.complete) return;
         if(page > (atHome.chapter[quality].length - 2)) return;
-        $goto("./" + (parseInt(page) + 1));
+        goto("./" + (parseInt(page) + 1));
         document.scrollingElement.scrollTo({
             top: 0
         });
@@ -71,7 +86,7 @@
     function prev() {
         if(!image.complete) return;
         if(page < 2) return;
-        $goto("./" + (page - 1));
+        goto("./" + (page - 1));
         document.scrollingElement.scrollTo({
             top: 0
         });
@@ -152,7 +167,7 @@
     };
 
     //for zoom detection
-    var px_ratio = window.devicePixelRatio || window.screen.availWidth / document.documentElement.clientWidth;
+    var px_ratio = typeof window === "undefined" ? 1 : window.devicePixelRatio || window.screen.availWidth / document.documentElement.clientWidth;
 
     function isZooming(){
         var newPx_ratio = window.devicePixelRatio || window.screen.availWidth / document.documentElement.clientWidth;
@@ -169,7 +184,7 @@
     /** @type {HTMLImageElement} */
     var image;
     var ratio = 0;
-    $: actualHeight = ratio > 1 ? document.body.clientHeight * ratio : document.body.clientHeight - 17;
+    $: actualHeight = typeof window === "undefined" ? -1 : ratio > 1 ? document.body.clientHeight * ratio : document.body.clientHeight - 17;
 
     /**
      * @param {Event} e
@@ -193,17 +208,17 @@
 </svelte:head>
 
 <div class="top">
-    <a class="back" href={$url("../..")}>Back to chapter list</a>
+    <a class="back" href="../.." data-sveltekit-preload-code="viewport">Back to chapter list</a>
 </div>
 
 <img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${imageproxy}${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
 
 <div class="bottom">
     {#if page > 1}
-        <a href={$url("./" + (page - 1))} class="prev">Previous</a>
+        <a href="./{page - 1}" class="prev">Previous</a>
     {/if}
     {#if page < atHome.chapter[quality].length - 1}
-        <a href={$url("./" + (parseInt(page) + 1))} class="next">Next</a>
+        <a href="./{parseInt(page) + 1}" class="next">Next</a>
     {/if}
 </div>
 

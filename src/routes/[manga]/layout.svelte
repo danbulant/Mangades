@@ -1,7 +1,5 @@
 <script>
-    import { url } from "@roxi/routify";
-
-    import request from "../../util/request";
+    import request from "$lib/util/request";
 
     export var manga;
 
@@ -23,7 +21,7 @@
 
 {#if blocked.includes(manga)}
     <main>
-        <a href={$url("..")}>Search</a>
+        <a href="..">Search</a>
         <h1>
             Content blocked.
         </h1>
