@@ -10,7 +10,7 @@
     import type { load } from "./+page";
     export var data: Awaited<ReturnType<typeof load>>;
 
-	var name: string = data.url.searchParams.get("search") || "";
+	var name: string = typeof window === "undefined" ? "" : data.url.searchParams.get("search") || "";
     $: if(typeof window !== "undefined") {
         const url = new URL(window.location.toString());
         url.searchParams.set("search", name || "");
