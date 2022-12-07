@@ -12,6 +12,7 @@
     import ArtList from "$lib/components/artList.svelte";
     import SvelteMarkdown from 'svelte-markdown';
     import ArtDialog from "$lib/components/artDialog.svelte";
+    import streamSaver from "streamsaver";
 
     export var data;
 
@@ -98,8 +99,8 @@
             id: window.location.toString() + "-" + chapter.id,
             language: chapter.attributes.translatedLanguage,
             updatedAt: chapter.attributes.updatedAt,
-            title: manga.title.en,
-            author: "Unknown",
+            title,
+            author: relationships.find(t => t.type === "author").attributes.name || "Unknown",
             chapters: [{
                 id: chapter.id,
                 number: chapter.attributes.chapter,
@@ -108,7 +109,7 @@
         });
     }
     async function downloadSingle(chapter) {
-        const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.attributes.chapter}.${format}`, {
+        const file = streamSaver.createWriteStream(`${title} ${chapter.attributes.chapter}.${format}`, {
             writableStrategy: undefined, // (optional)
             readableStrategy: undefined,  // (optional)
         });
@@ -144,7 +145,7 @@
             selected = [];
             return;
         }
-        const file = streamSaver.createWriteStream(`${manga.title.en}.${format}`, {
+        const file = streamSaver.createWriteStream(`${title}.${format}`, {
             writableStrategy: undefined, // (optional)
             readableStrategy: undefined,  // (optional)
         });
@@ -153,8 +154,8 @@
             id: window.location.toString(),
             language: selected[0].attributes.translatedLanguage,
             updatedAt: new Date,
-            title: manga.title.en,
-            author: "Unknown",
+            title: title,
+            author: relationships.find(t => t.type === "author").attributes.name || "Unknown",
             chapters: selected.map(chapter => ({
                 id: chapter.id,
                 title: chapter.attributes.title,
@@ -178,7 +179,7 @@
         }
 
         for (const chapter of selected) {
-            const file = streamSaver.createWriteStream(`${manga.title.en} ${chapter.attributes.chapter}.${format}`, {
+            const file = streamSaver.createWriteStream(`${title} ${chapter.attributes.chapter}.${format}`, {
                 writableStrategy: undefined, // (optional)
                 readableStrategy: undefined,  // (optional)
             });
