@@ -1,4 +1,4 @@
-export const proxy = "https://cors-anywhere.danbulant.cloud/";
+export const proxy = "https://cors-anywhere.danbulant.workers.dev/?"; // "https://cors-anywhere.danbulant.cloud/";
 export const imageproxy = "https://cors-anywhere.danbulant.workers.dev/?";
 export const base = proxy + "https://api.mangadex.org/";
 
