@@ -1,26 +1,30 @@
 
+var isLogedInCache: boolean | null = null;
+var isLogedInCacheTime: number | null = null;
 export function isLogedIn() {
     if(typeof window === "undefined") return;
+    if(isLogedInCache !== null && Date.now() - isLogedInCacheTime! < 10) return isLogedInCache;
     const token = localStorage.getItem("token");
-    const expiration = new Date(localStorage.getItem("expiration"));
+    const expiration = new Date(localStorage.getItem("expiration")!);
 
-    if(!token) return false;
+    isLogedInCacheTime = Date.now();
+    if(!token) return isLogedInCache = false;
     if(expiration.getTime() < Date.now()) {
         localStorage.removeItem("token");
         localStorage.removeItem("expiration");
-        return false;
+        return isLogedInCache = false;
     }
-    return true;
+    return isLogedInCache = true;
 }
 
 export function getUserID() {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")!;
     let data = JSON.parse(atob(token.substring(token.indexOf(".") + 1, token.lastIndexOf("."))));
     return data.sub;
 }
 
 export function makeRequest(query, variables) {
-    let auth = {};
+    let auth: any = {};
     if(isLogedIn()) {
         auth.Authorization = "Bearer " + localStorage.getItem("token");
     }
@@ -38,9 +42,11 @@ export function makeRequest(query, variables) {
     }).then(data => data.json());
 }
 
+let detailsCache: null | { id: string, data: Promise<any> } = null;
 export function getUserDetails() {
     const id = getUserID();
-    return makeRequest(`
+    if(detailsCache && detailsCache.id === id) return detailsCache.data;
+    let data = makeRequest(`
     query ($id: Int) {
         User(id: $id) {
           name
@@ -60,6 +66,8 @@ export function getUserDetails() {
           }
         }
     }`, { id });
+    detailsCache = { id, data };
+    return data;
 }
 
 export function getUserManga() {
