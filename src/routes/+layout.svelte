@@ -16,7 +16,7 @@
         last = window.location.pathname;
     });
     
-    let defaultDarkmode = typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let defaultDarkmode = true; // typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').matches;
     typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         if(defaultDarkmode == darkmode) {
             darkmode = event.matches;
@@ -34,9 +34,6 @@
     }
 </script>
 
-<button class="darkmode-toggle" class:dark={darkmode} on:click={() => darkmode = !darkmode}>{darkmode ? "Light" : "Dark"}</button>
-
-<!-- routify:options preload="proximity" -->
 <div class:dark={darkmode} class="main">
     <slot />
 </div>
@@ -68,10 +65,6 @@
         border-bottom-left-radius: 5px;
         background: rgba(255,255,255,0.3);
         backdrop-filter: blur(25px);
-    }
-    .main {
-        /* min-width: max(100%, 100vw);
-        min-height: max(100%, 100vh); */
     }
     .dark {
         color: white;
