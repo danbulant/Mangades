@@ -17,13 +17,19 @@
     $: if(validate(name)) open();
 
 	const anilistID = hostname === "manga.danbulant.eu" ? "8374" : "8375";
+    var focused = false;
+    var width;
+    var small = width < 600;
+    $: small = width < 600;
 </script>
 
-<div class="navbar flex">
+<svelte:window bind:innerWidth={width} />
+
+<div class="navbar flex" class:full-text={small && focused}>
     <h1>Library</h1>
 
     <div class="search">
-        <input type="text" placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
+        <input type="text" on:focus={() => focused = true} on:blur={() => focused = false} placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
         <button on:click={open}>➜</button>
     </div>
 
@@ -44,6 +50,12 @@
 <div class="spacer"></div>
 
 <style>
+    .full-text h1, .full-text .right {
+        display: none;
+    }
+    .full-text .search {
+        max-width: 100vw;
+    }
     .spacer {
         height: 4rem;
     }
@@ -76,10 +88,12 @@
     .search {
         display: flex;
         margin: 0;
+        max-width: 30rem;
+        flex-grow: 1;
     }
 	.search input {
         margin: 0;
-		width: min(30rem, 100vw - 18rem);
+        width: calc(100% - 2rem);
         border: none;
         background: none;
         color: white;
