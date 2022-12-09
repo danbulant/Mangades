@@ -72,7 +72,7 @@
     }
 	.items {
 		display: grid;
-  		align-items: center;
+  		align-items: flex-start;
 		gap: 1rem;
 		grid-template-columns: repeat(auto-fit, 11rem);
 	}

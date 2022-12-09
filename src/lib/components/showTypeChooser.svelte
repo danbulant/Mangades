@@ -7,8 +7,8 @@
 <div>
     <button on:click={() => $showType = "grid"} class:active={$showType == "grid"}>Grid</button><!--
     --><button on:click={() => $showType = "list"} class:active={$showType == "list"}>List</button><!--
-    <!-- -><button on:click={() => $showType = "comfortable"} class:active={$showType == "comfortable"}>Comfortable grid</button><!--
-    -><button on:click={() => $showType = "cover-only"} class:active={$showType == "cover-only"}>Cover only</button> -->
+    --><button on:click={() => $showType = "comfortable"} class:active={$showType == "comfortable"}>Comfortable</button><!--
+    --><button on:click={() => $showType = "cover-only"} class:active={$showType == "cover-only"}>Cover</button>
 </div>
 
 <style>

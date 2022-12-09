@@ -18,18 +18,26 @@
 
 	const anilistID = hostname === "manga.danbulant.eu" ? "8374" : "8375";
     var focused = false;
-    var width;
+    var width: number;
     var small = width < 600;
     $: small = width < 600;
+    var textfield: HTMLInputElement;
+
+    function handleKeyDown(e: KeyboardEvent) {
+        if(e.key === "k" && e.ctrlKey) {
+            e.preventDefault();
+            textfield.focus();
+        }
+    }
 </script>
 
-<svelte:window bind:innerWidth={width} />
+<svelte:window bind:innerWidth={width} on:keydown={handleKeyDown} />
 
 <div class="navbar flex" class:full-text={small && focused}>
     <h1>Library</h1>
 
     <div class="search">
-        <input type="text" on:focus={() => focused = true} on:blur={() => focused = false} placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
+        <input type="text" bind:this={textfield} on:focus={() => focused = true} on:blur={() => focused = false} placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
         <button on:click={open}>➜</button>
     </div>
 
@@ -61,11 +69,13 @@
     }
     .navbar {
         position: fixed;
+        z-index: 10;
         top: 0;
         left: 0;
         width: 100vw;
         height: 4rem;
-        background: black;
+        background: rgb(0,0,0,0.9);
+        backdrop-filter: blur(25px);
         border-bottom: 1px solid gray;
         gap: 1rem;
         padding: 0 1rem;

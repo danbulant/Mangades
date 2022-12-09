@@ -17,10 +17,17 @@
     export var coverColor: string | null = null;
 </script>
 
-<div class="item" class:grid={$showType == "grid"} class:comfortable={$showType == "comfortable"} class:coverOnly={$showType == "cover-only"} class:list={$showType == "list"}>
-    <div class="flex" class:r18 on:click>
+<div on:click class="item" class:grid={$showType == "grid"} class:comfortable={$showType == "comfortable"} class:coverOnly={$showType == "cover-only"} class:list={$showType == "list"}>
+    <div class="flex" class:r18>
         {#if cover}
-            <img class="cover" style="{coverColor ? "--box-shadow-color: " + coverColor : ""}" draggable="false" src="{cover}" alt="{title}" {title} width={coverWidth} height={coverHeight}>
+            <div class="cover-container" width={coverWidth} height={coverHeight}>
+                <img class="cover" style="{coverColor ? "--box-shadow-color: " + coverColor : ""}" draggable="false" src="{cover}" alt="{title}" {title} width={coverWidth} height={coverHeight}>
+                {#if $showType == "grid"}
+                    <div class="over">
+                        {title}
+                    </div>
+                {/if}
+            </div>
         {:else}
             Broken art
         {/if}
@@ -40,6 +47,11 @@
             {/if}
         </div>
     </div>
+    {#if $showType == "comfortable"}
+        <div>
+            {title}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -68,6 +80,27 @@
         display: flex;
         gap: 1rem;
     }
+    .cover-container {
+        position: relative;
+    }
+    .over {
+        display: -webkit-box;
+        position: absolute;
+        visibility: visible;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        line-height: 1.5rem;
+        max-height: calc(2rem + 2*1.4rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.7) 100%);
+        color: white;
+        padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+        border-radius: 5px;
+    }
 	.item img {
         --box-shadow-color: white;
 		border-radius: 5px;
@@ -76,11 +109,9 @@
 		box-shadow: 0 0 0 var(--box-shadow-color);
 		transition: .4s box-shadow, .3s height;
 	}
-	@media(prefers-reduced-motion) {
-		.item img, .item:hover img {
-			box-shadow: none;
-		}
-	}
+    .item.list img.cover {
+        height: 8rem;
+    }
 	.item:hover img {
 		box-shadow: 0 0 20px var(--box-shadow-color);
 	}
