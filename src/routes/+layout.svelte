@@ -49,15 +49,23 @@
 
 <style lang="postcss">
     .darkmode-toggle {
-        position: fixed;
+        position: absolute;
         top: 0;
         right: 0;
         z-index: 1000;
         background: none;
         border: none;
-        font-size: 1.5em;
+        font-size: 1.3rem;
         padding: 0.5em;
         cursor: pointer;
+        color: black;
+        border: 2px solid black;
+        border-top-width: 0;
+        border-right-width: 0;
+        border-radius: 0;
+        border-bottom-left-radius: 5px;
+        background: rgba(255,255,255,0.3);
+        backdrop-filter: blur(25px);
     }
     .main {
         /* min-width: max(100%, 100vw);
@@ -72,11 +80,8 @@
         background: black;
     }
     button.dark {
-        border: 2px solid white;
-        border-top-width: 0;
-        border-right-width: 0;
-        border-radius: 0;
-        border-bottom-left-radius: 5px;
+        border-color: white;
+        background: rgba(0,0,0,0.3);
     }
     .flow {
         position: fixed;

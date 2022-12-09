@@ -273,9 +273,25 @@
     }
 
     var selectedImage = null;
+
+    const relatedMangaMap = {
+        spin_off: "Spin off",
+        doujinshi: "Doujinshi",
+        side_story: "Side story",
+        colored: "Colored version",
+        monochrome: "Monochrome version",
+        adapted_from: "Adapted from",
+        based_on: "Based on",
+        shared_universe: "Shared universe"
+    };
+
+    var width;
+
+    var smallScreenMode = width < 660;
+    $: smallScreenMode = width < 660;
 </script>
 
-<svelte:window on:beforeUnload={beforeUnload} />
+<svelte:window on:beforeUnload={beforeUnload} bind:innerWidth={width} />
 
 <svelte:head>
     <title>Chapters of {title}</title>
@@ -290,7 +306,7 @@
 
 <ArtDialog bind:selectedImage />
 
-<main>
+<main class:smallScreenMode>
     <h1>{title}</h1>
 
     <h3>
@@ -302,13 +318,24 @@
         {/if}
         {#if anilistData} {#await anilistData then data} {data.status} &middot; {/await} {/if}
         {manga.contentRating}
+        {#if smallScreenMode}
+            <br>
+            {#if relationships.find(t => t.type === "author")}
+                Author: {relationships.find(t => t.type === "author").attributes.name}
+                {#if relationships.find(t => t.type === "artist")} &middot; {/if}
+            {/if}
+            {#if relationships.find(t => t.type === "artist")}
+                Artist: {relationships.find(t => t.type === "artist").attributes.name}
+            {/if}
+        {/if}
     </h3>
 
-    <div class="flex">
+
+    <div class="flex infoflex">
         {#if relationships.find(t => t.type === "cover_art")}
             <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
         {/if}
-        <div class="info">
+        <div class="info" class:hidden={smallScreenMode}>
             {#if relationships.find(t => t.type === "author")}
                 <span class="block">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
             {/if}
@@ -419,6 +446,19 @@
                     AL score: {data.averageScore} <br>
                     Also known as: {data.synonyms.join(", ")} {Object.values(manga.title).filter(t => t !== title).join(", ")}
 
+                    {#if smallScreenMode}
+                        {#if relationships.find(t => t.type === "author")}
+                            <span class="block">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
+                        {/if}
+                        {#if relationships.find(t => t.type === "artist")}
+                            <span class="block">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
+                        {/if}
+
+                        {#if manga.description.en}
+                            <p><SvelteMarkdown source={manga.description.en} isInline /></p>
+                        {/if}
+                    {/if}
+
                     <br><br>
                 {/await} {/if}
 
@@ -427,16 +467,7 @@
                         <div>
                             <h4>Related manga</h4>
                             {#each relationships.filter(t => t.type === "manga") as relatedManga}
-                                <a href="/{relatedManga.id}">{{
-                                    spin_off: "Spin off",
-                                    doujinshi: "Doujinshi",
-                                    side_story: "Side story",
-                                    colored: "Colored version",
-                                    monochrome: "Monochrome version",
-                                    adapted_from: "Adapted from",
-                                    based_on: "Based on",
-				                    shared_universe: "Shared universe"
-                                }[relatedManga.related] || relatedManga.related}</a> <br>
+                                <a href="/{relatedManga.id}">{relatedMangaMap[relatedManga.related] || relatedManga.related}</a> <br>
                             {/each}
                         </div>
                     {/if}
@@ -479,6 +510,14 @@
                             {/if}
                         </div>
                     {/if}
+                    {#if manga.tags}
+                        <div>
+                            <h4>Tags</h4>
+                            {#each manga.tags as tag}
+                                <span class="block">{tag.attributes.name.en || tag.attributes.name.jp || Object.values(tag.attributes.name)[0]}</span>
+                            {/each}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </SwiperSlide>
@@ -486,6 +525,12 @@
 </main>
 
 <style lang="postcss">
+    .hidden {
+        display: none;
+    }
+    .infoflex {
+        margin: 15px;
+    }
     h4 { margin: 0; }
     .flex-wrapped {
         display: flex;
@@ -534,6 +579,12 @@
         border-radius: 10px;
         height: 350px;
         margin-right: 15px;
+    }
+    .smallScreenMode .cover {
+        margin: 0;
+    }
+    .smallScreenMode .infoflex {
+        justify-content: center;
     }
     .block {
         display: block;
