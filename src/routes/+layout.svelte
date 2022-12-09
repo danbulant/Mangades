@@ -3,7 +3,7 @@
     import { logs } from "$lib/util/logs";
 
     let skipFirst = true;
-    let last = window.location.pathname;
+    let last = typeof window !== "undefined" && window.location.pathname;
     afterNavigate(page => {
         if(!["link", "popstate"].includes(page.type)) return; // ignore post hydration and automatic goto
         if(skipFirst) return skipFirst = false;
