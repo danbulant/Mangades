@@ -206,6 +206,10 @@
 </main>
 
 <style lang="postcss">
+    h1 {
+        margin: 0;
+        padding: 0.67em 0;
+    }
 	.nsfw > input, .nsfw > label {
 		display: inline-block;
 		width: auto;
