@@ -1,18 +1,20 @@
 <script>
+    import { afterNavigate } from "$app/navigation";
     import { logs } from "$lib/util/logs";
 
-    // let skipFirst = true;
-    // let last = window.location.pathname;
-    // $afterPageLoad(page => {
-    //     if(skipFirst) return skipFirst = false;
-    //     if(window.goatcounter) window.goatcounter.count({
-    //         path: window.location.pathname,
-    //         title: page.title,
-    //         referrer: last
-    //     });
-    //     else console.warn("Page change; GoatCounter not loaded (yet?)", window.location.pathname);
-    //     last = window.location.pathname;
-    // });
+    let skipFirst = true;
+    let last = window.location.pathname;
+    afterNavigate(page => {
+        if(!["link", "popstate"].includes(page.type)) return; // ignore post hydration and automatic goto
+        if(skipFirst) return skipFirst = false;
+        if(window.goatcounter) window.goatcounter.count({
+            path: window.location.pathname,
+            title: page.title,
+            referrer: last
+        });
+        else console.warn("Page change; GoatCounter not loaded (yet?)", window.location.pathname);
+        last = window.location.pathname;
+    });
     
     let defaultDarkmode = typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').matches;
     typeof window !== "undefined" && window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
