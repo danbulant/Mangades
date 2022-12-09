@@ -90,13 +90,6 @@
 		} 
 	}
 
-	var randomMangaLoading = false;
-	async function randomManga() {
-		randomMangaLoading = true;
-		const res = await request("manga/random");
-		goto("./" + res.data.id);
-	}
-
 	function open() {
 		var id = name;
 		if(id.startsWith("https://mangadex.org/title/")) {
@@ -132,7 +125,7 @@
 	</div>
 
 	<div class="flex">
-		<button on:click={randomManga} disabled={randomMangaLoading}>Random</button>
+		<a href="/random" class="button">Random</a>
 		{#if isLogedIn()}
 			{#await userDetails then userDetails}
 				<a href="https://anilist.co/user/{userDetails.data.User.name}" target="_blank">
