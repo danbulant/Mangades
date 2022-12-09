@@ -293,6 +293,19 @@
     $: smallScreenMode = width < 700;
 
     var scrollY, innerHeight;
+
+    let additionalImages = [];
+
+    $: if(anilistData) anilistData.then(data => {
+        if(data.bannerImage && !additionalImages.find(t => t.src === data.bannerImage)) {
+            additionalImages.push({
+                src: data.bannerImage,
+                alt: "Banner image",
+                color: data.coverImage.color
+            });
+            additionalImages = additionalImages;
+        }
+    });
 </script>
 
 <svelte:window on:beforeUnload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
@@ -442,7 +455,7 @@
         </SwiperSlide>
         <SwiperSlide>
             <div style="min-height: 30rem;">
-                <ArtList {mangaId} bind:selectedImage />
+                <ArtList {mangaId} bind:selectedImage additionalList={additionalImages} />
             </div>
         </SwiperSlide>
         <SwiperSlide>
@@ -528,8 +541,9 @@
     .hidden {
         display: none;
     }
-    .infoflex {
+    .infoflex.flex {
         margin: 15px;
+        justify-content: start;
     }
     .flex-wrapped {
         display: flex;
@@ -555,8 +569,10 @@
     }
     .banner {
         width: 100%;
-        max-height: 100%;
+        max-height: 40vh;
         object-fit: cover;
+        object-position: center top;
+        overflow: hidden;
     }
     .banner-container .fader {
         position: absolute;
@@ -565,7 +581,7 @@
         width: 100%;
         height: 100%;
         z-index: 1;
-        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%);
+        background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,1) 100%);
     }
     .genre {
         border-radius: 5px;
