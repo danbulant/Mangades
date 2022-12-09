@@ -54,6 +54,7 @@
             score={entry.score || "?"}
             description={entry.notes}
             coverColor={entry.media.coverImage.color == "null" ? null : entry.media.coverImage.color}
+            on:click={() => find(entry)}
             />
     {/each}
 </div>
