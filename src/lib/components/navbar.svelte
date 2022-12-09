@@ -16,7 +16,10 @@
 
     $: if(validate(name)) open();
 
-	const anilistID = hostname === "manga.danbulant.eu" ? "8374" : "8375";
+	const anilistID = {
+        "manga.danbulant.eu": "8374",
+        "tachiyomi.manga-d7tp.pages.dev": "10330"
+    }[hostname] || "8375";
     var focused = false;
     var width: number;
     var small = width < 600;
