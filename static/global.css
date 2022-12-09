@@ -76,3 +76,7 @@ button:focus, .button:focus, button:hover, .button:hover {
 	border-color: #666;
 	text-decoration: none;
 }
+
+* {
+    box-sizing: border-box;
+}
