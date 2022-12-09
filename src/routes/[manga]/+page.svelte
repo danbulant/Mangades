@@ -13,6 +13,8 @@
     import SvelteMarkdown from 'svelte-markdown';
     import ArtDialog from "$lib/components/artDialog.svelte";
     import streamSaver from "streamsaver";
+    import Navbar from "./navbar.svelte";
+    import ExpandableDescription from "./expandableDescription.svelte";
 
     export var data;
 
@@ -287,73 +289,81 @@
 
     var width;
 
-    var smallScreenMode = width < 660;
-    $: smallScreenMode = width < 660;
+    var smallScreenMode = width < 700;
+    $: smallScreenMode = width < 700;
+
+    var scrollY, innerHeight;
 </script>
 
-<svelte:window on:beforeUnload={beforeUnload} bind:innerWidth={width} />
+<svelte:window on:beforeUnload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
 
 <svelte:head>
-    <title>Chapters of {title}</title>
-	<meta name="description" value="Read {title} online, or download it as EPUB or CBZ file. Free of charge and ads." />
+    <title>{title} - Chapter list</title>
+	<meta name="description" value="Read {title} online, or download it as EPUB or CBZ file. Free of charge as well as free of ads." />
 </svelte:head>
 
-{#if anilistData} {#await anilistData then data}
-    {#if data.bannerImage}
-        <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
-    {/if}
-{/await} {/if}
+<Navbar transparent={scrollY < 0.2*innerHeight} {title} />
 
 <ArtDialog bind:selectedImage />
 
+{#if anilistData} {#await anilistData then data}
+    {#if data.bannerImage}
+        <div class="banner-container">
+            <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
+            <div class="fader"></div>
+        </div>
+    {/if}
+{/await} {/if}
+
 <main class:smallScreenMode>
-    <h1>{title}</h1>
-
-    <h3>
-        {#if manga.altTitles.find(t => t.en)}
-            {manga.altTitles.find(t => t.en)?.en} &middot;
-        {/if}
-        {#if manga.year}
-            {manga.year} &middot;
-        {/if}
-        {#if anilistData} {#await anilistData then data} {data.status} &middot; {/await} {/if}
-        {manga.contentRating}
-        {#if smallScreenMode}
-            <br>
-            {#if relationships.find(t => t.type === "author")}
-                Author: {relationships.find(t => t.type === "author").attributes.name}
-                {#if relationships.find(t => t.type === "artist")} &middot; {/if}
-            {/if}
-            {#if relationships.find(t => t.type === "artist")}
-                Artist: {relationships.find(t => t.type === "artist").attributes.name}
-            {/if}
-        {/if}
-    </h3>
-
-
     <div class="flex infoflex">
         {#if relationships.find(t => t.type === "cover_art")}
             <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
         {/if}
-        <div class="info" class:hidden={smallScreenMode}>
+        <div class="info">
+            <h1>{title}</h1>
+        
+            <h3>
+                {#if manga.altTitles.find(t => t.en)}
+                    {manga.altTitles.find(t => t.en)?.en} &middot;
+                {/if}
+                {#if manga.year}
+                    {manga.year} &middot;
+                {/if}
+                {#if anilistData} {#await anilistData then data} {data.status} &middot; {/await} {/if}
+                {manga.contentRating}
+            </h3>
             {#if relationships.find(t => t.type === "author")}
-                <span class="block">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
+                <span class="block author">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
             {/if}
             {#if relationships.find(t => t.type === "artist")}
-                <span class="block">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
+                <span class="block author">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
             {/if}
             {#if relationships.find(t => t.related === "colored" && t.type === "manga")}
                 <a href="/{relationships.find(t => t.related === "colored" && t.type === "manga").id}" class="block">Colored version</a>
             {/if}
-            {#if manga.description.en}
-                <p><SvelteMarkdown source={manga.description.en} isInline /></p>
+            {#if !smallScreenMode && manga.description.en}
+                <p class="description"><SvelteMarkdown source={manga.description.en} isInline /></p>
             {/if}
         </div>
     </div>
 
+    {#if smallScreenMode && manga.description.en}
+        <div class="fulldescription">
+            <ExpandableDescription source={manga.description.en} />
+        </div>
+    {/if}
+
+    {#if manga.tags}
+        <div class="tags">
+            {#each manga.tags as tag}
+                <span class="tag">{tag.attributes.name.en || tag.attributes.name.jp || Object.values(tag.attributes.name)[0]}</span>
+            {/each}
+        </div>
+    {/if}
+
     <div class="flex">
         <div class="linklist">
-            <a href="..">Go back to search page</a> <br>
             <a href="https://mangadex.org/title/{mangaId}">Mangadex.org</a>
         </div>
         <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
@@ -446,19 +456,6 @@
                     AL score: {data.averageScore} <br>
                     Also known as: {data.synonyms.join(", ")} {Object.values(manga.title).filter(t => t !== title).join(", ")}
 
-                    {#if smallScreenMode}
-                        {#if relationships.find(t => t.type === "author")}
-                            <span class="block">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
-                        {/if}
-                        {#if relationships.find(t => t.type === "artist")}
-                            <span class="block">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
-                        {/if}
-
-                        {#if manga.description.en}
-                            <p><SvelteMarkdown source={manga.description.en} isInline /></p>
-                        {/if}
-                    {/if}
-
                     <br><br>
                 {/await} {/if}
 
@@ -510,28 +507,30 @@
                             {/if}
                         </div>
                     {/if}
-                    {#if manga.tags}
-                        <div>
-                            <h4>Tags</h4>
-                            {#each manga.tags as tag}
-                                <span class="block">{tag.attributes.name.en || tag.attributes.name.jp || Object.values(tag.attributes.name)[0]}</span>
-                            {/each}
-                        </div>
-                    {/if}
                 </div>
             </div>
         </SwiperSlide>
     </Swiper>
 </main>
 
-<style lang="postcss">
+<style>
+    .tags {
+        display: flex;
+        overflow: auto;
+    }
+    .tag {
+        margin: 5px;
+        padding: 5px;
+        border-radius: 5px;
+        background-color: rgb(64,64,64);
+        user-select: all;
+    }
     .hidden {
         display: none;
     }
     .infoflex {
         margin: 15px;
     }
-    h4 { margin: 0; }
     .flex-wrapped {
         display: flex;
         justify-content: space-between;
@@ -547,11 +546,26 @@
     .cover.r18:hover {
         filter: blur(0);
     }
+    .banner-container {
+        width: 100%;
+        max-height: 40vh;
+        position: absolute;
+        z-index: 0;
+        user-select: none;
+    }
     .banner {
         width: 100%;
-        max-height: 30vh;
+        max-height: 100%;
         object-fit: cover;
-        animation: reveal 2s cubic-bezier(0, 0, 0.08, 0.99);
+    }
+    .banner-container .fader {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%);
     }
     .genre {
         border-radius: 5px;
@@ -562,29 +576,14 @@
     .tabbed {
         min-height: 20rem;
     }
-    @media (prefers-reduced-motion) {
-        .banner {
-            animation: none;
-        }
-    }
-    @keyframes reveal {
-        from {
-            max-height: 0;
-        }
-        to {
-            max-height: 30vh;
-        }
-    }
     .cover {
         border-radius: 10px;
-        height: 350px;
+        height: 20rem;
         margin-right: 15px;
+        transition: height .3s;
     }
     .smallScreenMode .cover {
-        margin: 0;
-    }
-    .smallScreenMode .infoflex {
-        justify-content: center;
+        height: 12rem;
     }
     .block {
         display: block;
@@ -592,12 +591,23 @@
     .flex {
         display: flex;
     }
-    h3 {
-        text-align: center;
-        margin-top: 0;
-    }
     h1 {
-        margin-bottom: 0;
+        margin: 0;
+        padding-top: 0.5rem;
+        text-align: left;
+    }
+    .smallScreenMode h1 {
+        font-size: 1.5rem;
+    }
+    h3 {
+        margin: 0;
+    }
+    .smallScreenMode h3 {
+        font-size: 1.2rem;
+        font-weight: normal;
+    }
+    .author {
+        font-weight: bold;
     }
     .flex {
         display: flex;
@@ -642,6 +652,10 @@
     main {
         font-size: 1.1rem;
         padding-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+        /* background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0vh, rgba(0,0,0,1) 30vh); */
+        padding-top: 5rem;
     }
     .no-wrap {
         white-space: nowrap;

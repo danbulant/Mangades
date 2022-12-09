@@ -21,15 +21,21 @@
     
 <style>
     div {
-        display: flex;
+        display: grid;
         flex-wrap: wrap;
         gap: 0.5rem;
         justify-content: start;
         align-items: start;
+        grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
     }
     div img {
         border-radius: 5px;
         height: 10rem;
         width: auto;
+    }
+    div img:first-child {
+        grid-column: 1 / span 2;
+        grid-row: 1 / span 2;
+        height: 20rem;
     }
 </style>
