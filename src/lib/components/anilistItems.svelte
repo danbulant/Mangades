@@ -23,7 +23,7 @@
             return;
         }
         console.log("anilist mangadex data", result.data);
-        let item = result.data.find(t => t.attributes.links.al === entry.media.id.toString());
+        let item = result.data.find(t => t.attributes.links && t.attributes.links.al === entry.media.id.toString());
         if(!item) item = result.data.find(t => t.attributes.title.en?.toLowerCase() === entry.media.title.english.toLowerCase());
         if(!item) item = result.data.find(t => t.attributes.title.ja?.toLowerCase() === entry.media.title.native.toLowerCase());
         if(!item) item = result.data.find(t => t.attributes.altTitles.find(t => Object.values(t).find(t => t.toLowerCase() === entry.media.title.native.toLowerCase())));
