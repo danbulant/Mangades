@@ -208,7 +208,7 @@
 </svelte:head>
 
 <div class="top">
-    <a class="back" href="../.." data-sveltekit-preload-code="viewport">Back to chapter list</a>
+    <a class="back" href="../" data-sveltekit-preload-code="viewport">Back to chapter list</a>
 </div>
 
 <img draggable={false} bind:this={image} style="height: {actualHeight}px" on:load={loaded} on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:mousedown={mouseclick} on:mouseup={preventDefault} src={`${imageproxy}${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][page - 1]}`} alt="Page {page} in chapter {chapter.attributes.chapter} of {manga.title.en}">
