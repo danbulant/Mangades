@@ -74,7 +74,7 @@
 		display: grid;
   		align-items: center;
 		gap: 1rem;
-		grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+		grid-template-columns: repeat(auto-fit, 11rem);
 	}
 	.items.list {
 		grid-template-columns: 1fr;

@@ -43,6 +43,9 @@
 </div>
 
 <style>
+    .item.grid {
+        width: 11rem;
+    }
     .list .item img {
         height: 10rem;
     }

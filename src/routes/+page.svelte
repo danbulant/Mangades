@@ -8,6 +8,7 @@
     import { goto } from "$app/navigation";
 
     import type { load } from "./+page";
+    import Navbar from "$lib/components/navbar.svelte";
     export var data: Awaited<ReturnType<typeof load>>;
 
 	var name: string = typeof window === "undefined" ? "" : data.url.searchParams.get("search") || "";
@@ -91,7 +92,7 @@
 	}
 
 	function open() {
-		var id = name;
+		var id = name.trim();
 		if(id.startsWith("https://mangadex.org/title/")) {
 			id = id.substring("https://mangadex.org/title/".length);
 			id = id.match(/[^\/?#]*/)[0];
@@ -102,10 +103,16 @@
 		goto("./" + id);
 	}
 
-	const anilistID = data.url.hostname === "manga.danbulant.eu" ? "8374" : "8375";
-
 	let userDetails = isLogedIn() && getUserDetails();
 	let userManga = isLogedIn() && getUserManga();
+
+    $: if(userDetails) {
+        userDetails.then(data => {
+            if(data.data.User.options.nsfwContent) {
+                allowNSFW = true;
+            }
+        })
+    }
 </script>
 
 <svelte:window on:scroll={scroll} />
@@ -115,40 +122,25 @@
 	<meta name="description" value="Read manga from Mangadex online, or download it as EPUB or CBZ file to read it on your e-reader." />
 </svelte:head>
 
+<Navbar bind:name {open} hostname={data.url.hostname} />
+
 <main>
-
-	<h1>miniMANGADEX</h1>
-
-	<div class="flex search">
-		<input type="text" placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
-		<button on:click={open}>Go</button>
-	</div>
-
-	<div class="flex">
-		<a href="/random" class="button">Random</a>
-		{#if isLogedIn()}
-			{#await userDetails then userDetails}
-				<a href="https://anilist.co/user/{userDetails.data.User.name}" target="_blank">
-					<img class="avatar" width=100 height=100 src={userDetails.data.User.avatar.medium} alt="Your ({userDetails.data.User.name}) avatar">
-				</a>
-			{/await}
-		{:else}
-			<a class="button" href='https://anilist.co/api/v2/oauth/authorize?client_id={anilistID}&response_type=token'>Login with AniList</a>
-		{/if}
-		<a href="https://mangadex.org">Mangadex.org</a>
-	</div>
-
 	{#if isLogedIn()}
-		<div class="nsfw">
-			<input id="nsfw" type="checkbox" bind:checked={allowNSFW}>
-			<label for="nsfw">
-				Allow NSFW
-			</label>
-		</div>
 
-		<div class="flex">
-			<a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
-			<ShowTypeChooser />
+		<div class="flex" style="margin-top: 1rem;">
+            <div>
+                <div class="nsfw">
+                    <input id="nsfw" type="checkbox" bind:checked={allowNSFW}>
+                    <label for="nsfw">
+                        Allow NSFW
+                    </label>
+                </div>
+                <a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
+            </div>
+            <div>
+                <a href="/random" class="button" style="width: 100%; margin-bottom: 0.4rem; display: inline-block;">Random</a>
+                <ShowTypeChooser />
+            </div>
 		</div>
 	
 		{#if result}
@@ -176,29 +168,9 @@
 </main>
 
 <style lang="postcss">
-    h1 {
-        margin: 0;
-        padding: 0.67em 0;
-    }
 	.nsfw > input, .nsfw > label {
 		display: inline-block;
 		width: auto;
-	}
-	.avatar {
-		border-radius: 999px;
-		height: 4rem;
-		width: 4rem;
-	}
-	button {
-		cursor: pointer;
-	}
-	.search button {
-		border-top-left-radius: 0;
-		border-bottom-left-radius: 0;
-	}
-	.search input {
-		border-top-right-radius: 0;
-		border-bottom-right-radius: 0;
 	}
 	.flex {
 		display: flex;
@@ -209,10 +181,6 @@
 	input {
 		width: 100%;
 		margin-bottom: 5px;
-	}
-	.flex {
-		display: flex;
-		justify-content: space-between;
 	}
 	a:not(.button) {
 		color: rgb(33, 50, 87);
