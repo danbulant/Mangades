@@ -98,7 +98,7 @@
             {#await relations then relations}
                 <Item
                     r18={!['safe', 'suggestive'].includes(manga.attributes.contentRating)}
-                    title={manga.attributes.title.en}
+                    title={manga.attributes.title.en || manga.attributes.title["ja"] || manga.attributes.title["ja-ro"] || Object.values(manga.attributes.title)[0]}
                     description={manga.attributes.description.en}
                     cover={`https://uploads.mangadex.org/covers/${manga.id}/${getCoverArt(manga, relations)}.512.jpg`}
 
