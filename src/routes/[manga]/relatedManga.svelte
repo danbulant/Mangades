@@ -94,7 +94,7 @@
 
 <div class="grid" class:list={$showType == "list"}>
     {#each mangaRelations as manga}
-        <a href="/manga/{manga.id}" class="manga">
+        <a href="/{manga.id}" class="manga">
             {#await relations then relations}
                 <Item
                     r18={!['safe', 'suggestive'].includes(manga.attributes.contentRating)}
