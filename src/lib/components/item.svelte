@@ -43,7 +43,7 @@
                 <span>{score}/10</span>
             {/if}
             {#if description}
-                <p><SvelteMarkdown source={description} isInline /></p>
+                <p class="description"><SvelteMarkdown source={description} isInline /></p>
             {/if}
         </div>
     </div>
@@ -55,6 +55,15 @@
 </div>
 
 <style>
+    .description {
+        line-height: 1.5rem;
+        height: calc(1.5rem * 3);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .item.grid {
         width: 11rem;
     }
@@ -66,6 +75,10 @@
     }
     .r18 img {
         filter: blur(10px);
+        /* filter transition applied on the image later */
+    }
+    .item:hover .r18 img {
+        filter: blur(0);
     }
     .info {
         display: none;
@@ -107,7 +120,7 @@
 		height: 15rem;
 		width: auto;
 		box-shadow: 0 0 0 var(--box-shadow-color);
-		transition: .4s box-shadow, .3s height;
+		transition: .4s box-shadow, .3s height, .4s filter;
 	}
     .item.list img.cover {
         height: 8rem;
