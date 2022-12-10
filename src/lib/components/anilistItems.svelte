@@ -18,8 +18,13 @@
         isLoading = true;
         var query = new URLSearchParams();
         query.set("title", entry.media.title.romaji);
+        query.append("contentRating[]", "safe");
+        query.append("contentRating[]", "suggestive");
+        query.append("contentRating[]", "erotica");
+        query.append("contentRating[]", "pornographic");
+        query.append("order[relevance]", "desc");
         query.set("limit", 20);
-        console.log("anilist entry", entry);
+        console.log("anilist entry", entry, query.toString());
         let result;
         try {
             result = await request("manga", query);
@@ -31,9 +36,11 @@
         }
         console.log("anilist mangadex data", result.data);
         let item = result.data.find(t => t.attributes.links && t.attributes.links.al === entry.media.id.toString());
-        if(!item) item = result.data.find(t => t.attributes.title.en?.toLowerCase() === entry.media.title.english.toLowerCase());
-        if(!item) item = result.data.find(t => t.attributes.title.ja?.toLowerCase() === entry.media.title.native.toLowerCase());
-        if(!item) item = result.data.find(t => t.attributes.altTitles.find(t => Object.values(t).find(t => t.toLowerCase() === entry.media.title.native.toLowerCase())));
+        if(!item && entry.media.title.english) item = result.data.find(t => t.attributes.title.en?.toLowerCase() === entry.media.title.english.toLowerCase());
+        if(!item && entry.media.title.native) item = result.data.find(t => t.attributes.title.ja?.toLowerCase() === entry.media.title.native.toLowerCase());
+        if(!item && entry.media.title.native) item = result.data.find(t => t.attributes.title.en?.toLowerCase() === entry.media.title.romaji.toLowerCase() || t.attributes.title.ja?.toLowerCase() === entry.media.title.romaji.toLowerCase());
+        if(!item) item = result.data.find(t => Object.values(t.attributes.title).find(t => Object.values(entry.media.title).filter(t => t).map(t => t.toLowerCase()).includes(t.toLowerCase())));
+        if(!item) item = result.data.find(t => t.attributes.altTitles.find(t => Object.values(t).find(t => Object.values(entry.media.title).filter(t => t).map(t => t.toLowerCase()).includes(t.toLowerCase()))));
         console.log("anilist mangadex item", item);
         if(!item) {
             alert(`Couldn't find any mangadex entry.`);
