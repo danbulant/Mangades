@@ -16,6 +16,8 @@
     import Navbar from "./navbar.svelte";
     import ExpandableDescription from "./expandableDescription.svelte";
     import { tick } from "svelte";
+    import Favicon from "./favicon.svelte";
+    import RelatedManga from "./relatedManga.svelte";
 
     export var data;
 
@@ -294,23 +296,12 @@
 
     var selectedImage = null;
 
-    const relatedMangaMap = {
-        spin_off: "Spin off",
-        doujinshi: "Doujinshi",
-        side_story: "Side story",
-        colored: "Colored version",
-        monochrome: "Monochrome version",
-        adapted_from: "Adapted from",
-        based_on: "Based on",
-        shared_universe: "Shared universe"
-    };
-
     var width;
 
     var smallScreenMode = width < 700;
     $: smallScreenMode = width < 700;
 
-    var scrollY, innerHeight, offsetHeight;
+    var scrollY, innerHeight;
 
     let additionalImages = [];
 
@@ -495,73 +486,77 @@
         </SwiperSlide>
         <SwiperSlide>
             <div style="min-height: 30rem;">
-                {#if anilistData} {#await anilistData then data}                    
-                    Genres: {data.genres.join(", ")}
-                    <br>
-                    
-                    AL popularity: {data.popularity} <br>
-                    favorite on AL: {data.isFavourite ? "yes" : "no"} <br>
-                    AL score: {data.averageScore} <br>
-                    Also known as: {data.synonyms.join(", ")} {Object.values(manga.title).filter(t => t !== title).join(", ")}
-
-                    <br><br>
-                {/await} {/if}
-
                 <div class="flex-wrapped">
-                    {#if relationships.filter(t => t.type === "manga").length}
+                    {#if anilistData} {#await anilistData then data}                    
                         <div>
-                            <h4>Related manga</h4>
-                            {#each relationships.filter(t => t.type === "manga") as relatedManga}
-                                <a href="/{relatedManga.id}">{relatedMangaMap[relatedManga.related] || relatedManga.related}</a> <br>
-                            {/each}
+                            <b>Genres</b>: {data.genres.join(", ")}
+                            <br>
+                            
+                            <b>AL popularity</b>: {data.popularity} <br>
+                            <b>favorite on AL</b>: {data.isFavourite ? "yes" : "no"} <br>
+                            <b>AL score</b>: {data.averageScore} <br>
+                            <b>Also known as</b>: {data.synonyms.join(", ")} {Object.values(manga.title).filter(t => t !== title).join(", ")}
+
+                            <br><br>
                         </div>
-                    {/if}
+                    {/await} {/if}
                     {#if manga.links}
                         <div>
                             <h4>Links</h4>
 
                             {#if manga.links.al}
-                                <a href="https://anilist.co/manga/{manga.links.al}">Anilist</a> <br>
+                                <a href="https://anilist.co/manga/{manga.links.al}"><Favicon url="https://anilist.co" /> Anilist</a> <br>
                             {/if}
                             {#if manga.links.ap}
-                                <a href="https://www.anime-planet.com/manga/{manga.links.ap}">Animeplanet</a> <br>
+                                <a href="https://www.anime-planet.com/manga/{manga.links.ap}"><Favicon url="https://anime-planet.com" /> Animeplanet</a> <br>
                             {/if}
                             {#if manga.links.bw}
-                                <a href="https://bookwalker.jp/{manga.links.bw}">Bookwalker</a> <br>
+                                <a href="https://bookwalker.jp/{manga.links.bw}"><Favicon url="https://bookwalker.jp" /> Bookwalker</a> <br>
                             {/if}
                             {#if manga.links.mu}
-                                <a href="https://www.mangaupdates.com/series.html?id={manga.links.mu}">Manga updates</a> <br>
+                                <a href="https://www.mangaupdates.com/series.html?id={manga.links.mu}"><Favicon url="https://www.mangaupdates.com" /> Manga updates</a> <br>
                             {/if}
                             {#if manga.links.nu}
-                                <a href="https://www.novelupdates.com/series/{manga.links.nu}">Novel updates</a> <br>
+                                <a href="https://www.novelupdates.com/series/{manga.links.nu}"><Favicon url="https://www.novelupdates.com" /> Novel updates</a> <br>
                             {/if}
                             {#if manga.links.amz}
-                                <a href={manga.links.amz}>Amazon</a> <br>
+                                <a href={manga.links.amz}><Favicon url={manga.links.amz} /> Amazon</a> <br>
                             {/if}
                             {#if manga.links.ebj}
-                                <a href={manga.links.ebj}>Ebookjapan</a> <br>
+                                <a href={manga.links.ebj}><Favicon url={manga.links.ebj} /> Ebookjapan</a> <br>
                             {/if}
                             {#if manga.links.mal}
-                                <a href="https://myanimelist.net/manga/{manga.links.mal}">MyAnimeList</a> <br>
+                                <a href="https://myanimelist.net/manga/{manga.links.mal}"><Favicon url="https://myanimelist.net" /> MyAnimeList</a> <br>
                             {/if}
                             {#if manga.links.cdj}
-                                <a href="{manga.links.cdj}">CDJapan</a> <br>
+                                <a href="{manga.links.cdj}"><Favicon url={manga.links.cdj} /> CDJapan</a> <br>
                             {/if}
                             {#if manga.links.raw}
-                                <a href="{manga.links.raw}">RAW</a> <br>
+                                <a href="{manga.links.raw}"><Favicon url={manga.links.raw} /> RAW</a> <br>
                             {/if}
                             {#if manga.links.engtl}
-                                <a href="{manga.links.engtl}">engtl</a> <br>
+                                <a href="{manga.links.engtl}"><Favicon url={manga.links.engtl} /> engtl</a> <br>
                             {/if}
+
+                            <a href="https://mangadex.org/title/{mangaId}"><Favicon url="https://mangadex.org"/> Mangadex.org</a>
                         </div>
                     {/if}
                 </div>
+
+                {#if relationships.filter(t => t.type === "manga").length}
+                    <div>
+                        <RelatedManga on:slideToClosest={() => swiper.slideToClosest()} mangaRelations={relationships.filter(t => t.type === "manga")} />
+                    </div>
+                {/if}
             </div>
         </SwiperSlide>
     </Swiper>
 </main>
 
 <style>
+    h4 {
+        margin: 0;
+    }
     .tags {
         display: flex;
         overflow: auto;

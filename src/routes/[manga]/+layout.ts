@@ -7,7 +7,7 @@ export async function load({ params }) {
     if (blocked.includes(params.manga)) {
         throw error(404, 'blocked because of copyright');
     }
-    const manga = await request("manga/" + params.manga + "?includes[]=author&includes[]=cover_art&includes[]=artist");
+    const manga = await request("manga/" + params.manga + "?includes[]=author&includes[]=cover_art&includes[]=artist&includes[]=manga");
     console.log(manga);
     return {
         manga: manga.data.attributes,
