@@ -16,18 +16,23 @@
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
-    // $: if(last !== -1) preloadPage(page + 1);
+    onMount(() => {
+        preloadPage(parseInt(page) + 1)
+    });
 
-    // onMount(() => preloadPage(page + 1));
+    $: if(last !== page) preloadPage(parseInt(page) + 1);
 
-    // let last = -1;
-    // function preloadPage(num: number) {
-    //     if(last === num) return;
-    //     if(typeof window === "undefined") return;
-    //     preloadData("./" + num);
-    //     (new Image()).src = `${imageproxy}${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][num - 1]}`;
-    //     last = num;
-    // }
+    let last = -1;
+    function preloadPage(num: number) {
+        if(last === num) return;
+        if(typeof window === "undefined") return;
+        if(num >= (atHome.chapter[quality].length)) return;
+        if(num < 1) return;
+        console.log("Preloading page " + num);
+        preloadData("./" + num);
+        (new Image()).src = `${imageproxy}${atHome.baseUrl}/${quality}/${atHome.chapter.hash}/${atHome.chapter[quality][num - 1]}`;
+        last = num;
+    }
 
     var quality = "data";
 
@@ -97,7 +102,6 @@
      */
     function mouseclick(e) {
         if(xDown !== null) return;
-        console.log(e.buttons);
         if(e.buttons & 8) {
             e.preventDefault();
             e.stopPropagation();
