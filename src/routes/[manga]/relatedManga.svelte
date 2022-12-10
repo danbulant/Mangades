@@ -93,7 +93,7 @@
 <ShowTypeChooser />
 
 <div class="grid" class:list={$showType == "list"}>
-    {#each mangaRelations as manga}
+    {#each mangaRelations.filter(t => $showNsfw !== "hide" || ["safe", "suggestive"].includes(t.attributes.contentRating)) as manga (manga.id)}
         <a href="/{manga.id}" class="manga">
             {#await relations then relations}
                 <Item

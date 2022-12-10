@@ -54,7 +54,7 @@
 {/if}
 
 <div class="items" class:list={$showType == "list"}>
-    {#each entries.sort((a, b) => a.priority - b.priority) as entry}
+    {#each entries.sort((a, b) => a.priority - b.priority) as entry (entry.media.id)}
         <Item
             r18={entry.media.isAdult}
             cover={entry.media.coverImage.large}

@@ -8,7 +8,7 @@
 
 
 <div class="items" class:list={$showType == "list"}>
-    {#each entries as entry}
+    {#each entries as entry (entry.id)}
         <a href="/{entry.id}">
             <Item
                 r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)}
