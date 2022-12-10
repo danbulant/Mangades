@@ -117,8 +117,9 @@
 	.item img {
         --box-shadow-color: white;
 		border-radius: 5px;
-		height: 15rem;
+		max-height: 15rem;
 		width: auto;
+        max-width: 100%;
 		box-shadow: 0 0 0 var(--box-shadow-color);
 		transition: .4s box-shadow, .3s height, .4s filter;
 	}
