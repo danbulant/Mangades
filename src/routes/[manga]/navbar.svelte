@@ -38,6 +38,7 @@
     .navbar a:hover, .navbar a:active, .navbar a:focus {
         text-decoration: none;
         transform: translateX(-0.5rem);
+        padding-right: 0.5rem;
     }
     .transparent .title {
         opacity: 0;
