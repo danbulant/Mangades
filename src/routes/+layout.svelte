@@ -1,7 +1,10 @@
 <script>
     import { afterNavigate } from "$app/navigation";
     import { logs } from "$lib/util/logs";
+    import PageTransition from "./pageTransition.svelte";
 
+    export var data;
+    
     let skipFirst = true;
     let last = typeof window !== "undefined" && window.location.pathname;
     afterNavigate(page => {
@@ -35,7 +38,9 @@
 </script>
 
 <div class:dark={darkmode} class="main">
-    <slot />
+    <PageTransition url={data.url}>
+        <slot />
+    </PageTransition>
 </div>
 
 {#if $logs.length}

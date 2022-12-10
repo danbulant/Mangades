@@ -208,7 +208,7 @@
 
 <svelte:head>
     <title>{title} Chapter {chapter.attributes.chapter} Page {page}</title>
-	<meta name="description" value="Read page {page} of chapter {chapter.attributes.chapter} of {title} online. Free of charge and ads." />
+	<meta name="description" content="Read page {page} of chapter {chapter.attributes.chapter} of {title} online. Free of charge and ads." />
 </svelte:head>
 
 <div class="top">

@@ -119,7 +119,7 @@
 
 <svelte:head>
 	<title>Mangadex search & downloader</title>
-	<meta name="description" value="Read manga from Mangadex online, or download it as EPUB or CBZ file to read it on your e-reader." />
+	<meta name="description" content="Read manga from Mangadex online, or download it as EPUB or CBZ file to read it on your e-reader." />
 </svelte:head>
 
 <Navbar bind:name {open} hostname={data.url.hostname} />
@@ -165,6 +165,8 @@
 			Sign in via Anilist to view your manga list and search for manga online. You can still read manga or download it without signing in using direct mangadex URLs.
 		</p>
 	{/if}
+
+    <a href="/about" class="about">About</a>
 </main>
 
 <style lang="postcss">
@@ -183,7 +185,7 @@
 		margin-bottom: 5px;
 	}
 	a:not(.button) {
-		color: rgb(33, 50, 87);
+		color: rgb(86, 139, 255);
 		text-decoration: underline;
 	}
 	a:hover:not(.button) {
@@ -192,5 +194,15 @@
 
     main {
         padding-bottom: 1rem;
+    }
+    a.about {
+        display: block;
+        text-align: right;
+        margin-top: 1rem;
+        color: white;
+        font-size: 1.4rem;
+    }
+    a.about:visited {
+        color: white;
     }
 </style>

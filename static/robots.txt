@@ -2,3 +2,6 @@
 User-agent: *
 Allow: /
 Disallow: /*
+Allow: /?search=
+Allow: /random
+Allow: /about
