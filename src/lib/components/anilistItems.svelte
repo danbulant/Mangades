@@ -8,6 +8,13 @@
 
     var isLoading = false;
     async function find(entry) {
+        if(typeof localStorage !== "undefined") {
+            let cache = localStorage.getItem("anilist-mangadex-" + entry.media.id);
+            if(cache) {
+                goto("./" + cache);
+                return;
+            }
+        }
         isLoading = true;
         var query = new URLSearchParams();
         query.set("title", entry.media.title.romaji);
@@ -32,6 +39,9 @@
             alert(`Couldn't find any mangadex entry.`);
             isLoading = false;
             return
+        }
+        if(typeof localStorage !== "undefined") {
+            localStorage.setItem("anilist-mangadex-" + entry.media.id, item.id);
         }
         goto("./" + item.id);
     }

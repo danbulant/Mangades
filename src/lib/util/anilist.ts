@@ -70,9 +70,11 @@ export function getUserDetails() {
     return data;
 }
 
+let mangaCache;
 export function getUserManga() {
     const id = getUserID();
-    return makeRequest(`
+    if(mangaCache) return mangaCache;
+    return mangaCache = makeRequest(`
     query($id: Int) {
     MediaListCollection(userId: $id, type: MANGA) {
       lists {

@@ -246,33 +246,36 @@
         }
     }
 
+    const anilistCache = new Map();
     function anilistInfo(id) {
-        return makeRequest(`
-        query ($id: Int) {
-            Media(id: $id, format: MANGA) {
-                id
-                type
-                format
-                status
-                chapters
-                volumes
-                countryOfOrigin
-                bannerImage
-                genres
-                synonyms
-                averageScore
-                popularity
-                isFavourite
-                isFavouriteBlocked
-                isAdult
-                siteUrl
-                coverImage {
-                    large
-                    medium
-                    color
+        if(!anilistCache.has(id))
+            anilistCache.set(id, makeRequest(`
+            query ($id: Int) {
+                Media(id: $id, format: MANGA) {
+                    id
+                    type
+                    format
+                    status
+                    chapters
+                    volumes
+                    countryOfOrigin
+                    bannerImage
+                    genres
+                    synonyms
+                    averageScore
+                    popularity
+                    isFavourite
+                    isFavouriteBlocked
+                    isAdult
+                    siteUrl
+                    coverImage {
+                        large
+                        medium
+                        color
+                    }
                 }
-            }
-        }`, { id }).then(t => t.data.Media);
+            }`, { id }).then(t => t.data.Media));
+        return anilistCache.get(id);
     }
 
     let anilistData;
