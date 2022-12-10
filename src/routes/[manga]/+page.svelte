@@ -54,11 +54,11 @@
     $: if(chapters?.id !== mangaId && !loadingChapters) {
         loadingChapters = true;
         getMangaChapters(mangaId).then(async data => {
-        chapters = data;
-        await tick();
-        swiper.slideToClosest();
+            chapters = data;
+            await tick();
+            swiper.slideToClosest();
             loadingChapters = false;
-    });
+        });
     }
 
 
@@ -319,7 +319,9 @@
             additionalImages.push({
                 src: data.bannerImage,
                 alt: "Banner image",
-                color: data.coverImage.color
+                color: data.coverImage.color,
+                height: 1,
+                width: 3
             });
             additionalImages = additionalImages;
         }
