@@ -1,5 +1,6 @@
 <script lang="ts">
     import SvelteMarkdown from "svelte-markdown";
+    import { showNsfw } from "./showNsfwChooser.svelte";
     import { showType } from "./showTypeChooser.svelte";
 
     export var r18: boolean = false;
@@ -18,15 +19,13 @@
 </script>
 
 <div on:click class="item" class:grid={$showType == "grid"} class:comfortable={$showType == "comfortable"} class:coverOnly={$showType == "cover-only"} class:list={$showType == "list"}>
-    <div class="flex" class:r18>
+    <div class="flex" class:r18={r18 && $showNsfw !== "show"}>
         {#if cover}
             <div class="cover-container" width={coverWidth} height={coverHeight}>
                 <img class="cover" style="{coverColor ? "--box-shadow-color: " + coverColor : ""}" draggable="false" src="{cover}" alt="{title}" {title} width={coverWidth} height={coverHeight}>
-                {#if $showType == "grid"}
-                    <div class="over">
-                        {title}
-                    </div>
-                {/if}
+                <div class="over" class:hidden={$showType !== "grid"}>
+                    {title}
+                </div>
             </div>
         {:else}
             Broken art
@@ -47,11 +46,9 @@
             {/if}
         </div>
     </div>
-    {#if $showType == "comfortable"}
-        <div>
-            {title}
-        </div>
-    {/if}
+    <div class="comfortable-div" class:hidden={$showType !== "comfortable"}>
+        {title}
+    </div>
 </div>
 
 <style>
@@ -113,6 +110,27 @@
         color: white;
         padding: 1.5rem 0.5rem 0.5rem 0.5rem;
         border-radius: 5px;
+        user-select: initial;
+        opacity: 1;
+        transition: .3s opacity;
+    }
+    .comfortable-div {
+        user-select: initial;
+        opacity: 1;
+        transition: .3s opacity;
+        line-height: 1.5rem;
+        display: -webkit-box;
+        max-height: calc(2rem + 3*1.4rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        transition: max-height .3s;
+    }
+    .hidden {
+        opacity: 0;
+        user-select: none;
+        max-height: 0;
     }
 	.item img {
         --box-shadow-color: white;
@@ -121,10 +139,10 @@
 		width: auto;
         max-width: 100%;
 		box-shadow: 0 0 0 var(--box-shadow-color);
-		transition: .4s box-shadow, .3s height, .4s filter;
+		transition: .4s box-shadow, .3s max-height, .4s filter;
 	}
     .item.list img.cover {
-        height: 8rem;
+        max-height: 8rem;
     }
 	.item:hover img {
 		box-shadow: 0 0 20px var(--box-shadow-color);

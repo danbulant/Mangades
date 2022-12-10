@@ -9,6 +9,7 @@
 
     import type { load } from "./+page";
     import Navbar from "$lib/components/navbar.svelte";
+    import ShowNsfwChooser, { showNsfw } from "$lib/components/showNsfwChooser.svelte";
     export var data: Awaited<ReturnType<typeof load>>;
 
 	var name: string = typeof window === "undefined" ? "" : data.url.searchParams.get("search") || "";
@@ -18,8 +19,6 @@
         history.replaceState(history.state, "", url.toString());
     }
 
-	var allowNSFW = false;
-
 	const filters = {
 		contentRating: ["safe", "suggestive"],
 		demographic: [],
@@ -28,7 +27,7 @@
 		sortValue: "desc"
 	};
 
-	filters.contentRating = allowNSFW ? [] : ["safe", "suggestive"];
+	filters.contentRating = $showNsfw !== "hide" ? ["safe", "suggestive", "erotica", "pornographic"] : ["safe", "suggestive"];
 
     /**
      * Searches for results
@@ -109,7 +108,7 @@
     $: if(userDetails) {
         userDetails.then(data => {
             if(data.data.User.options.nsfwContent) {
-                allowNSFW = true;
+                $showNsfw = "show";
             }
         })
     }
@@ -130,10 +129,7 @@
 		<div class="flex" style="margin-top: 1rem;">
             <div>
                 <div class="nsfw">
-                    <input id="nsfw" type="checkbox" bind:checked={allowNSFW}>
-                    <label for="nsfw">
-                        Allow NSFW
-                    </label>
+                    <ShowNsfwChooser />
                 </div>
                 <a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
             </div>
@@ -170,19 +166,11 @@
 </main>
 
 <style lang="postcss">
-	.nsfw > input, .nsfw > label {
-		display: inline-block;
-		width: auto;
-	}
 	.flex {
 		display: flex;
 		justify-content: space-between;
 		width: 100%;
 		align-items: center;
-	}
-	input {
-		width: 100%;
-		margin-bottom: 5px;
 	}
 	a:not(.button) {
 		color: rgb(86, 139, 255);

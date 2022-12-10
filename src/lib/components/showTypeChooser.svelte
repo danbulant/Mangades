@@ -1,7 +1,8 @@
 <script context="module" lang="ts">
-    import { writable, type Writable } from "svelte/store";
+    import { storedWritable } from "$lib/util/storedWritable";
+    import type { Writable } from "svelte/store";
 
-    export var showType: Writable<"grid" | "comfortable" | "list" | "cover-only"> = writable("grid");
+    export var showType: Writable<"grid" | "comfortable" | "list" | "cover-only"> = storedWritable("show-mode", "grid");
 </script>
 
 <div>
@@ -15,6 +16,7 @@
     div {
         margin-left: auto;
         width: max-content;
+        user-select: none;
     }
     button {
         border-radius: 0;

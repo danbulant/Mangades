@@ -1,5 +1,6 @@
 <script lang="ts">
     import Item from "$lib/components/item.svelte";
+    import ShowNsfwChooser, { showNsfw } from "$lib/components/showNsfwChooser.svelte";
     import ShowTypeChooser, { showType } from "$lib/components/showTypeChooser.svelte";
     import request, { imageproxy } from "$lib/util/request";
     import { createEventDispatcher, tick } from "svelte";
@@ -86,11 +87,16 @@
 
     $: {
         $showType;
+        $showNsfw;
         setTimeout(() => dispatch("slideToClosest"), 100);
     }
 </script>
 
-<ShowTypeChooser />
+<div class="flex">
+    <ShowNsfwChooser />
+    
+    <ShowTypeChooser />
+</div>
 
 <div class="grid" class:list={$showType == "list"}>
     {#each mangaRelations.filter(t => $showNsfw !== "hide" || ["safe", "suggestive"].includes(t.attributes.contentRating)) as manga (manga.id)}
@@ -109,6 +115,11 @@
 </div>
 
 <style>
+    .flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
     .grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, 11rem);
