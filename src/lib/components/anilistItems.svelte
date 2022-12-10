@@ -1,5 +1,7 @@
 <script>
     import { goto } from "$app/navigation";
+    import { flip } from "svelte/animate";
+    import { blur } from "svelte/transition";
     import request from "../util/request";
     import Item from "./item.svelte";
     import { showType } from "./showTypeChooser.svelte";
@@ -62,17 +64,19 @@
 
 <div class="items" class:list={$showType == "list"}>
     {#each entries.sort((a, b) => a.priority - b.priority) as entry (entry.media.id)}
-        <Item
-            r18={entry.media.isAdult}
-            cover={entry.media.coverImage.large}
-            title={entry.media.title.userPreferred}
-            lastChapter={entry.media.chapters}
-            chapterProgress={entry.progress}
-            score={entry.score || "?"}
-            description={entry.notes}
-            coverColor={entry.media.coverImage.color == "null" ? null : entry.media.coverImage.color}
-            on:click={() => find(entry)}
-            />
+        <div animate:flip transition:blur>
+            <Item
+                r18={entry.media.isAdult}
+                cover={entry.media.coverImage.large}
+                title={entry.media.title.userPreferred}
+                lastChapter={entry.media.chapters}
+                chapterProgress={entry.progress}
+                score={entry.score || "?"}
+                description={entry.notes}
+                coverColor={entry.media.coverImage.color == "null" ? null : entry.media.coverImage.color}
+                on:click={() => find(entry)}
+                />
+        </div>
     {/each}
 </div>
 

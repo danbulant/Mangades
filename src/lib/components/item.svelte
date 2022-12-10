@@ -1,5 +1,7 @@
 <script lang="ts">
     import SvelteMarkdown from "svelte-markdown";
+    import { flip } from "svelte/animate";
+    import { blur, crossfade } from "svelte/transition";
     import { showNsfw } from "./showNsfwChooser.svelte";
     import { showType } from "./showTypeChooser.svelte";
 
@@ -16,6 +18,10 @@
     export var coverHeight: number | null = null;
 
     export var coverColor: string | null = null;
+
+    const [send, receive] = crossfade({
+        fallback: blur
+    });
 </script>
 
 <div on:click class="item" class:grid={$showType == "grid"} class:comfortable={$showType == "comfortable"} class:coverOnly={$showType == "cover-only"} class:list={$showType == "list"}>
@@ -23,9 +29,11 @@
         {#if cover}
             <div class="cover-container" width={coverWidth} height={coverHeight}>
                 <img class="cover" style="{coverColor ? "--box-shadow-color: " + coverColor : ""}" draggable="false" src="{cover}" alt="{title}" {title} width={coverWidth} height={coverHeight}>
-                <div class="over" class:hidden={$showType !== "grid"}>
-                    {title}
-                </div>
+                {#if $showType == "grid"}
+                    <div class="over" in:send={{ key: title }} out:receive={{ key:title }}>
+                        {title}
+                    </div>
+                {/if}
             </div>
         {:else}
             Broken art
@@ -46,8 +54,12 @@
             {/if}
         </div>
     </div>
-    <div class="comfortable-div" class:hidden={$showType !== "comfortable"}>
-        {title}
+    <div class="comfortable-div" class:hiding={$showType !== "comfortable"}>
+        {#if $showType == "comfortable"}
+            <span in:send={{ key: title }} out:receive={{ key: title }}>
+                {title}
+            </span>
+        {/if}
     </div>
 </div>
 
@@ -125,11 +137,13 @@
         text-overflow: ellipsis;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
-        transition: max-height .3s;
+        transition: max-height .3s ease;
     }
-    .hidden {
-        opacity: 0;
-        user-select: none;
+    .comfortable-div span {
+        display: block;
+        width: 100%;
+    }
+    .comfortable-div.hiding {
         max-height: 0;
     }
 	.item img {

@@ -4,6 +4,8 @@
     import ShowTypeChooser, { showType } from "$lib/components/showTypeChooser.svelte";
     import request, { imageproxy } from "$lib/util/request";
     import { createEventDispatcher, tick } from "svelte";
+    import { flip } from "svelte/animate";
+    import { blur } from "svelte/transition";
 
     const relatedMangaMap = {
         main_story: "Main story",
@@ -100,7 +102,7 @@
 
 <div class="grid" class:list={$showType == "list"}>
     {#each mangaRelations.filter(t => $showNsfw !== "hide" || ["safe", "suggestive"].includes(t.attributes.contentRating)) as manga (manga.id)}
-        <a href="/{manga.id}" class="manga">
+        <a href="/{manga.id}" class="manga" animate:flip={{ duration: d=>Math.sqrt(d)*10 }} transition:blur>
             {#await relations then relations}
                 <Item
                     r18={!['safe', 'suggestive'].includes(manga.attributes.contentRating)}

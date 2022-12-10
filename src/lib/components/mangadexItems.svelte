@@ -1,5 +1,7 @@
 <script>
     import { imageproxy } from "$lib/util/request";
+    import { flip } from "svelte/animate";
+    import { blur } from "svelte/transition";
     import Item from "./item.svelte";
     import { showType } from "./showTypeChooser.svelte";
 
@@ -9,7 +11,7 @@
 
 <div class="items" class:list={$showType == "list"}>
     {#each entries as entry (entry.id)}
-        <a href="/{entry.id}">
+        <a href="/{entry.id}" animate:flip transition:blur>
             <Item
                 r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)}
                 cover={imageproxy + entry.relationships.find(t => t.type === "cover_art") ? `https://uploads.mangadex.org/covers/${entry.id}/${entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg` : null}
