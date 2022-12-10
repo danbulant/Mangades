@@ -23,7 +23,6 @@
             dispatch("select", e);
         }
     }
-    console.log("ch", chapter);
 </script>
 
 <tr class="chapter item" on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">

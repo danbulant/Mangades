@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import Chapter from "$lib/components/chapter.svelte";
     import { EpubGenerator } from "$lib/util/generateEpub";
     import { CBZGenerator } from "$lib/util/generateCbz";
@@ -15,6 +15,7 @@
     import streamSaver from "streamsaver";
     import Navbar from "./navbar.svelte";
     import ExpandableDescription from "./expandableDescription.svelte";
+    import { tick } from "svelte";
 
     export var data;
 
@@ -27,17 +28,39 @@
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
+    let cache: { id: string, data: any, total } | null = null;
     async function getMangaChapters(id) {
-        const data = await request("manga/" + id + "/feed?limit=500&translatedLanguage[]=en&translatedLanguage[]=uk&includes[]=scanlation_group&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic");
-        console.log(data);
-        data.data = data.data
-            .filter(item => !item.attributes?.externalUrl)
-            .sort((a, b) => a.attributes.chapter - b.attributes.chapter);
-        return data;
+        if(cache?.id === id && cache.data.length >= cache.total) return cache;
+        const params = new URLSearchParams();
+        params.append("limit", "500");
+        params.append("translatedLanguage[]", "en");
+        params.append("translatedLanguage[]", "uk");
+        params.append("includes[]", "scanlation_group");
+        params.append("contentRating[]", "safe");
+        params.append("contentRating[]", "suggestive");
+        params.append("contentRating[]", "erotica");
+        params.append("contentRating[]", "pornographic");
+        params.append("order[chapter]", "asc");
+        params.append("offset", cache?.id === id && cache?.data.length.toString() || 0);
+        const data = await request("manga/" + id + "/feed?" + params.toString());
+        if(!cache || cache.id !== id) cache = { id, data: [], total: 0 };
+        cache.total = data.total;
+        cache.data = cache.data.concat(data.data);
+        return cache;
+    }
+    
+    var chapters;
+    var loadingChapters = false;
+    $: if(chapters?.id !== mangaId && !loadingChapters) {
+        loadingChapters = true;
+        getMangaChapters(mangaId).then(async data => {
+        chapters = data;
+        await tick();
+        swiper.slideToClosest();
+            loadingChapters = false;
+    });
     }
 
-    var chapters;
-    $: chapters = getMangaChapters(mangaId);
 
     console.log("manga", manga);
     console.log("chapters", chapters);
@@ -209,19 +232,16 @@
     var copyrightOpen = false;
 
     function selectAll() {
-        chapters.then(res => {
-            var chapters = res.data;
-            if(arraysEqual(selected, chapters)) {
-                selected = [];
-            } else {
-                selected = chapters.slice();
-            }
-            if(selected.length) {
-                text = `Selected ${selected.length} chapters`;
-            } else {
-                text = defaultText;
-            }
-        });
+        if(arraysEqual(selected, chapters)) {
+            selected = [];
+        } else {
+            selected = chapters.slice();
+        }
+        if(selected.length) {
+            text = `Selected ${selected.length} chapters`;
+        } else {
+            text = defaultText;
+        }
     }
 
     function anilistInfo(id) {
@@ -263,8 +283,6 @@
         if(swiper && tabs.indexOf(selectedTab) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selectedTab));
     }
 
-    $: typeof window !== "undefined" && chapters && chapters.then(() => swiper.slideToClosest())
-
     let swiper;
     function swiperInit(e) {
         swiper = e.detail[0];
@@ -292,7 +310,7 @@
     var smallScreenMode = width < 700;
     $: smallScreenMode = width < 700;
 
-    var scrollY, innerHeight;
+    var scrollY, innerHeight, offsetHeight;
 
     let additionalImages = [];
 
@@ -306,9 +324,24 @@
             additionalImages = additionalImages;
         }
     });
+
+    $: if(chapters) console.log("ch", chapters, chapters.data.length, chapters.total, chapters.data.length < chapters.total);
+
+    let loadingNextPage = false;
+    async function loadNextPage() {
+        if(loadingNextPage) return;
+        console.log("Loading next page");
+        loadingNextPage = true;
+        chapters = await getMangaChapters(mangaId);
+        await tick();
+        loadingNextPage = false;
+        swiper.slideToClosest();
+    }
+
+    $: if(!loadingNextPage && chapters && chapters.data.length < chapters.total && scrollY > 300 && scrollY > document.body.scrollHeight * 0.8) loadNextPage();
 </script>
 
-<svelte:window on:beforeUnload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
+<svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
 
 <svelte:head>
     <title>{title} - Chapter list</title>
@@ -437,9 +470,9 @@
                     </button>
                 </div>
 
-                {#await chapters}
+                {#if !chapters}
                     Loading chapters...
-                {:then chapters}
+                {:else}
                     {#if chapters.data.length === 0}
                         <p>No chapters found.</p>
                     {/if}
@@ -450,7 +483,7 @@
                             {/each}
                         </tbody>
                     </table>
-                {/await}
+                {/if}
             </div>
         </SwiperSlide>
         <SwiperSlide>
@@ -537,6 +570,7 @@
         border-radius: 5px;
         background-color: rgb(64,64,64);
         user-select: all;
+        flex-shrink: 0;
     }
     .hidden {
         display: none;
