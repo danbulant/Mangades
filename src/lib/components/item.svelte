@@ -74,7 +74,7 @@
         text-overflow: ellipsis;
     }
     .item.grid {
-        width: 100%;
+        height: 100%;
     }
     h3 {
         margin: 0;
@@ -98,6 +98,7 @@
     .flex {
         display: flex;
         gap: 1rem;
+        height: 100%;
     }
     .cover-container {
         position: relative;
@@ -147,6 +148,10 @@
         --box-shadow-color: white;
 		border-radius: 5px;
         max-width: 100%;
+        max-height: 100%;
+        height: 100%;
+        width: auto;
+        object-fit: cover;
 		box-shadow: 0 0 0 var(--box-shadow-color);
 		transition: .4s box-shadow, .3s max-height, .4s filter;
 	}

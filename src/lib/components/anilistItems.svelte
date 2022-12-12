@@ -66,7 +66,7 @@
     {#each lists as list}
         <h2>{list.name}</h2>
         {#each list.entries.sort((a, b) => a.priority - b.priority) as entry (entry.media.id)}
-            <div animate:flip transition:blur>
+            <div class="h-full" animate:flip transition:blur>
                 <Item
                     r18={entry.media.isAdult}
                     cover={entry.media.coverImage.large}
@@ -107,4 +107,7 @@
 	.items.list {
 		grid-template-columns: 1fr;
 	}
+    .h-full {
+        height: 100%;
+    }
 </style>
