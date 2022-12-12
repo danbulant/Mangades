@@ -6,7 +6,7 @@
     import Item from "./item.svelte";
     import { showType } from "./showTypeChooser.svelte";
 
-    export var entries;
+    export var lists;
 
     var isLoading = false;
     async function find(entry) {
@@ -63,20 +63,23 @@
 {/if}
 
 <div class="items" class:list={$showType == "list"}>
-    {#each entries.sort((a, b) => a.priority - b.priority) as entry (entry.media.id)}
-        <div animate:flip transition:blur>
-            <Item
-                r18={entry.media.isAdult}
-                cover={entry.media.coverImage.large}
-                title={entry.media.title.userPreferred}
-                lastChapter={entry.media.chapters}
-                chapterProgress={entry.progress}
-                score={entry.score || "?"}
-                description={entry.notes}
-                coverColor={entry.media.coverImage.color == "null" ? null : entry.media.coverImage.color}
-                on:click={() => find(entry)}
-                />
-        </div>
+    {#each lists as list}
+        <h2>{list.name}</h2>
+        {#each list.entries.sort((a, b) => a.priority - b.priority) as entry (entry.media.id)}
+            <div animate:flip transition:blur>
+                <Item
+                    r18={entry.media.isAdult}
+                    cover={entry.media.coverImage.large}
+                    title={entry.media.title.userPreferred}
+                    lastChapter={entry.media.chapters}
+                    chapterProgress={entry.progress}
+                    score={entry.score || "?"}
+                    description={entry.notes}
+                    coverColor={entry.media.coverImage.color == "null" ? null : entry.media.coverImage.color}
+                    on:click={() => find(entry)}
+                    />
+            </div>
+        {/each}
     {/each}
 </div>
 
@@ -91,11 +94,15 @@
         background: black;
         color: white;
     }
+    h2 {
+        grid-column: 1 / -1;
+        margin: 0;
+    }
 	.items {
 		display: grid;
   		align-items: flex-start;
 		gap: 1rem;
-		grid-template-columns: repeat(auto-fit, 11rem);
+		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
 	}
 	.items.list {
 		grid-template-columns: 1fr;

@@ -149,10 +149,7 @@
 		{:else}
 			<div>
 				{#await userManga then userManga}
-					{#each userManga.data.MediaListCollection.lists as list}
-						<h2>{list.name}</h2>
-						<AnilistItems entries={list.entries} />
-					{/each}
+                    <AnilistItems lists={userManga.data.MediaListCollection.lists} />
 				{/await}
 			</div>
 		{/if}

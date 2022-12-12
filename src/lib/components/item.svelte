@@ -74,10 +74,7 @@
         text-overflow: ellipsis;
     }
     .item.grid {
-        width: 11rem;
-    }
-    .list .item img {
-        height: 10rem;
+        width: 100%;
     }
     h3 {
         margin: 0;
@@ -149,8 +146,6 @@
 	.item img {
         --box-shadow-color: white;
 		border-radius: 5px;
-		max-height: 15rem;
-		width: auto;
         max-width: 100%;
 		box-shadow: 0 0 0 var(--box-shadow-color);
 		transition: .4s box-shadow, .3s max-height, .4s filter;
