@@ -17,9 +17,11 @@
             // @ts-ignore
             release: import.meta.env.VITE_SENTRY_RELEASE,
             integrations: [
-                new BrowserTracing(),
+                new BrowserTracing({
+                    tracePropagationTargets: ["localhost", "manga.danbulant.eu", "tachiyomi.manga-d7tp.pages.dev", "manga-d7tp.pages.dev", /^\/.*/]
+                }),
             ],
-            tracesSampleRate: 1
+            tracesSampleRate: 1            
         });
     }
     
