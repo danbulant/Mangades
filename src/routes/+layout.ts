@@ -6,7 +6,7 @@ import { BrowserTracing } from "@sentry/tracing";
 export function load({ url, event }) {
     let sentry;
     // @ts-ignore
-    if(import.meta.env.VITE_SENTRY_DSN) if(typeof window === 'undefined') {
+    if(import.meta.env.VITE_SENTRY_DSN && typeof event !== "undefined") if(typeof window === 'undefined') {
         sentry = new Toucan({
             // @ts-ignore
             dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -27,6 +27,7 @@ export function load({ url, event }) {
                     'content-type',
                     'x-real-ip',
                     'host',
+                    'cf-ipcountry'
                 ],
                 allowedSearchParams: /(.*)/
             }
