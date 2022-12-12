@@ -2,8 +2,26 @@
     import { afterNavigate } from "$app/navigation";
     import { logs } from "$lib/util/logs";
     import PageTransition from "./pageTransition.svelte";
+    import * as Sentry from '@sentry/svelte';
+    import { BrowserTracing } from "@sentry/tracing";
+    import { browser } from '$app/environment';
 
     export var data;
+    // @ts-ignore
+    if(import.meta.env.VITE_SENTRY_DSN && browser) {
+        Sentry.init({
+            // @ts-ignore
+            dsn:  import.meta.env.VITE_SENTRY_DSN,
+            // @ts-ignore
+            environment: import.meta.env.VITE_SENTRY_ENVIRONMENT,
+            // @ts-ignore
+            release: import.meta.env.VITE_SENTRY_RELEASE,
+            integrations: [
+                new BrowserTracing(),
+            ],
+            tracesSampleRate: 1
+        });
+    }
     
     let skipFirst = true;
     let last = typeof window !== "undefined" && window.location.pathname;
