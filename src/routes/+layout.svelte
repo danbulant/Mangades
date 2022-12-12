@@ -6,7 +6,7 @@
 
     export var data;
 
-    if (browser && !dev && import.meta.env.VITE_SENTRY_DSN) {
+    if (typeof window !== "undefined" && !dev && import.meta.env.VITE_SENTRY_DSN) {
         Sentry.init({
             dsn:  import.meta.env.VITE_SENTRY_DSN,
             environment: import.meta.env.VITE_SENTRY_ENVIRONMENT,
