@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@sentry/browser": "^7.25.0",
+    "@sentry/tracing": "^7.25.0",
     "fflate": "^0.6.10",
     "streamsaver": "^2.0.6",
     "svelte-local-storage-store": "^0.3.1",
