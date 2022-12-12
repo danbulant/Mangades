@@ -4,7 +4,7 @@ import { BrowserTracing } from "@sentry/tracing";
 /** @type {import('./$types').PageLoad} */
 export function load({ url, event }) {
     // @ts-ignore
-    if(import.meta.env.VITE_SENTRY_DSN && typeof event !== "undefined" && typeof window !== 'undefined') 
+    if(import.meta.env.VITE_SENTRY_DSN && typeof event !== "undefined" && typeof window !== 'undefined') {
         Sentry.init({
             // @ts-ignore
             dsn:  import.meta.env.VITE_SENTRY_DSN,
