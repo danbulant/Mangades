@@ -34,4 +34,6 @@
 	<p>DISCLAIMER: This site isn't distributing any content and is using mangadex.org API. All of the site's requests are done client side, my servers aren't sharing any manga data. Website is open source, and I don't claim any copyright on the publications. <i>If you believe in good faith you're downloading copyrighted content, file a DMCA at yourself, your operating system (as it took a part in the download), your ISP, your browser and all the free libraries that are used in any of the previous (made by volunteers), and then here. /satire</i></p>
 
     <p>For DMCA requests, I recommend going to the mangadex page of the selected manga instead and reporting it there, as it will be taken down more quickly. You can of course report it to me and I'll block the page from viewing it, but it's trivial to remove that (1 required software installed to run this site, edit single line, run 2 more commands and you have bypassed the block), so I really recommend removing the source instead.</p>
+
+    <a href="/error">Crash</a>
 </main>
