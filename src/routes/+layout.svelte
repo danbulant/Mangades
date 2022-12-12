@@ -2,17 +2,8 @@
     import { afterNavigate } from "$app/navigation";
     import { logs } from "$lib/util/logs";
     import PageTransition from "./pageTransition.svelte";
-    import * as Sentry from '@sentry/browser';
 
     export var data;
-
-    if (typeof window !== "undefined" && import.meta.env.VITE_SENTRY_DSN) {
-        Sentry.init({
-            dsn:  import.meta.env.VITE_SENTRY_DSN,
-            environment: import.meta.env.VITE_SENTRY_ENVIRONMENT,
-            release: import.meta.env.VITE_SENTRY_RELEASE,
-        });
-    }
     
     let skipFirst = true;
     let last = typeof window !== "undefined" && window.location.pathname;
