@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/browser";
 
 var isLogedInCache: boolean | null = null;
 var isLogedInCacheTime: number | null = null;
@@ -20,6 +21,7 @@ export function isLogedIn() {
 export function getUserID() {
     const token = localStorage.getItem("token")!;
     let data = JSON.parse(atob(token.substring(token.indexOf(".") + 1, token.lastIndexOf("."))));
+    Sentry.setUser({ id: data.sub });
     return data.sub;
 }
 
