@@ -1,10 +1,14 @@
+<script>
+    import Navbar from "./navbar.svelte";
+</script>
 <svelte:head>
 	<title>Mangadex search & downloader - About</title>
 	<meta name="description" content="About page. Read manga from Mangadex online, or download it as EPUB or CBZ file to read it on your e-reader." />
 </svelte:head>
 
-<main>
-    <h1>Manga reader</h1>
+<Navbar title="About" />
+
+<main style="padding-top: 6rem;">
     <a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
 	
 	<hr>
