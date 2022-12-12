@@ -546,9 +546,9 @@
                     {/if}
                 </div>
 
-                {#if relationships.filter(t => t.type === "manga").length}
+                {#if relationships.filter(t => t.type === "manga" && typeof t.attributes !== "undefined").length}
                     <div>
-                        <RelatedManga on:slideToClosest={() => swiper.slideToClosest()} mangaRelations={relationships.filter(t => t.type === "manga")} />
+                        <RelatedManga on:slideToClosest={() => swiper.slideToClosest()} mangaRelations={relationships.filter(t => t.type === "manga" && typeof t.attributes !== "undefined")} />
                     </div>
                 {/if}
             </div>
