@@ -5,7 +5,10 @@
 
 {#if selectedImage}
     <dialog open class="open" on:click={() => selectedImage = null} transition:fade={{ duration: 200 }}>
-        <img src={selectedImage} alt="">
+        <div class="inner">
+            <img src={selectedImage} alt="">
+            <slot />
+        </div>
         <button>Tap to close</button>
     </dialog>
 {/if}
@@ -30,6 +33,14 @@
     :global(.dark dialog[open].open.open) {
         background: rgba(0, 0, 0, 0.6);
     }
+    .inner {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin: 2rem;
+    }
     dialog img {
         border-radius: 5px;
         max-height: 100%;
@@ -37,7 +48,7 @@
     }
     dialog button {
         position: absolute;
-        bottom: 5px;
-        left: 5px;
+        bottom: 1rem;
+        left: 1rem;
     }
 </style>

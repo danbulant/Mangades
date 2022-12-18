@@ -21,7 +21,7 @@
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 0 1rem;
+        padding: 0 2rem;
         transition: background 0.3s ease;
         user-select: none;
     }
@@ -34,10 +34,13 @@
         font-size: 2rem;
         transform: translateX(0);
         transition: transform 0.2s ease;
+        margin-right: 0.5rem;
+        padding-right: 0;
     }
     .navbar a:hover, .navbar a:active, .navbar a:focus {
         text-decoration: none;
         transform: translateX(-0.5rem);
+        margin-right: 0;
         padding-right: 0.5rem;
     }
     .transparent .title {

@@ -5,6 +5,8 @@
     import * as Sentry from '@sentry/svelte';
     import { BrowserTracing } from "@sentry/tracing";
     import { browser } from '$app/environment';
+    import { apm } from  "$lib/util/tracing";
+    import { page } from "$app/stores";
 
     export var data;
     // @ts-ignore
@@ -21,8 +23,12 @@
                     tracePropagationTargets: ["localhost", "manga.danbulant.eu", "tachiyomi.manga-d7tp.pages.dev", "manga-d7tp.pages.dev", /^\/.*/]
                 }),
             ],
-            tracesSampleRate: 1            
+            tracesSampleRate: 1,
+            autoSessionTracking: false
         });
+    }
+    if(browser) {
+        apm.setInitialPageLoadName($page.route.id);
     }
     
     let skipFirst = true;

@@ -1,7 +1,8 @@
 const ratelimits = new Map();
 
-function callback(func) {
+function callback({ func }) {
     const params = ratelimits.get(func);
+    console.log(params, func, ratelimits);
     func(...params.params).then(params.result.resolve).catch(params.result.reject);
     ratelimits.delete(func);
 }
@@ -14,8 +15,9 @@ function callback(func) {
  * @returns {Promise<ReturnType<T>>}
  */
 function ratelimit(func, ...params) {
+    console.log("Adding rate limit", func, params);
     const data = ratelimits.get(func) || {
-        timeout: setTimeout(callback, 200, func),
+        timeout: setTimeout(callback, 200, { func }),
         params,
         result: {}
     };

@@ -3,9 +3,7 @@
     import { EpubGenerator } from "$lib/util/generateEpub";
     import { CBZGenerator } from "$lib/util/generateCbz";
     import request, { imageproxy } from "$lib/util/request";
-    import { BaseGenerator } from "$lib/util/baseGenerator";
     import { arraysEqual } from "$lib/util/arrays";
-    import { makeRequest } from "$lib/util/anilist";
     import Tabs from "$lib/components/tabs/tabs.svelte";
     import { slide } from "svelte/transition";
     import { Swiper, SwiperSlide } from 'swiper/svelte';
@@ -18,6 +16,7 @@
     import { tick } from "svelte";
     import Favicon from "./favicon.svelte";
     import RelatedManga from "./relatedManga.svelte";
+    import { anilistInfo } from "./anilistInfo";
 
     export var data;
 
@@ -29,6 +28,9 @@
     $: relationships = data.mangaRelationships;
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
+
+    let anilistData;
+    $: anilistData = manga.links && manga.links.al && anilistInfo(manga.links.al);
 
     let cache: { id: string, data: any, total } | null = null;
     async function getMangaChapters(id) {
@@ -246,43 +248,9 @@
         }
     }
 
-    const anilistCache = new Map();
-    function anilistInfo(id) {
-        if(!anilistCache.has(id))
-            anilistCache.set(id, makeRequest(`
-            query ($id: Int) {
-                Media(id: $id, format: MANGA) {
-                    id
-                    type
-                    format
-                    status
-                    chapters
-                    volumes
-                    countryOfOrigin
-                    bannerImage
-                    genres
-                    synonyms
-                    averageScore
-                    popularity
-                    isFavourite
-                    isFavouriteBlocked
-                    isAdult
-                    siteUrl
-                    coverImage {
-                        large
-                        medium
-                        color
-                    }
-                }
-            }`, { id }).then(t => t.data.Media));
-        return anilistCache.get(id);
-    }
-
-    let anilistData;
-    $: anilistData = manga.links && manga.links.al && anilistInfo(manga.links.al);
-
     var selectedTab = "Chapters";
-    const tabs = ["Chapters", "Art", "More information"];
+    const defaultTabs = ["Chapters", "Art", "More info"];
+    var tabs = defaultTabs;
 
     $: {
         if(swiper && tabs.indexOf(selectedTab) !== swiper.realIndex) swiper.slideTo(tabs.indexOf(selectedTab));
@@ -311,15 +279,26 @@
     $: if(anilistData) anilistData.then(data => {
         if(data.bannerImage && !additionalImages.find(t => t.src === data.bannerImage)) {
             additionalImages.push({
+                src: data.coverImage.large,
+                alt: "Cover image from anilist",
+                // color: data.coverImage.color,
+                height: 1,
+                width: 1
+            });
+            additionalImages.push({
                 src: data.bannerImage,
-                alt: "Banner image",
-                color: data.coverImage.color,
+                alt: "Banner image from anilist",
+                // color: data.coverImage.color,
                 height: 1,
                 width: 3
             });
             additionalImages = additionalImages;
+            tabs = [...defaultTabs, "Characters"];
         }
-    });
+    }); else {
+        additionalImages = []
+        tabs = defaultTabs;
+    }
 
     $: if(chapters) console.log("ch", chapters, chapters.data.length, chapters.total, chapters.data.length < chapters.total);
 
@@ -335,6 +314,8 @@
     }
 
     $: if(!loadingNextPage && chapters && chapters.data.length < chapters.total && scrollY > 300 && scrollY > document.body.scrollHeight * 0.8) loadNextPage();
+
+    var selectedCharacter = null;
 </script>
 
 <svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
@@ -346,7 +327,31 @@
 
 <Navbar transparent={scrollY < 0.2*innerHeight} {title} />
 
-<ArtDialog bind:selectedImage />
+<ArtDialog bind:selectedImage>
+    {#if selectedCharacter}
+        <div class="character-info">
+            <h1>{selectedCharacter.node.name.full}</h1>
+            <h2 style="padding: 0; margin: 0 0 0.5rem; color: rgba(255,255,255,0.7);">{selectedCharacter.node.name.native}</h2>
+            <small style="color: rgba(255,255,255,0.7)">Crossed out text may indicate spoilers!</small>
+            <p style="margin: 0 0 1rem;"><SvelteMarkdown source={selectedCharacter.node.description} isInline /></p>
+            {#if selectedCharacter.node.gender}
+                <div>Gender: {selectedCharacter.node.gender}</div>
+            {/if}
+            {#if selectedCharacter.node.age}
+                <div>Age: {selectedCharacter.node.age}</div>
+            {/if}
+            {#if selectedCharacter.node.dateOfBirth && (selectedCharacter.node.dateOfBirth.day || selectedCharacter.node.dateOfBirth.month || selectedCharacter.node.dateOfBirth.year)}
+                <div>Birthday: {selectedCharacter.node.dateOfBirth.day || "Unknown"}/{selectedCharacter.node.dateOfBirth.month || "Unknown"}/{selectedCharacter.node.dateOfBirth.year || "Unknown"}</div>
+            {/if}
+            {#if selectedCharacter.node.favourites}
+                <div>Favourites: {selectedCharacter.node.favourites}</div>
+            {/if}
+            {#if selectedCharacter.node.bloodType}
+                <div>Blood type: {selectedCharacter.node.bloodType}</div>
+            {/if}
+        </div>
+    {/if}
+</ArtDialog>
 
 {#if anilistData} {#await anilistData then data}
     {#if data.bannerImage}
@@ -360,7 +365,10 @@
 <main class:smallScreenMode>
     <div class="flex infoflex">
         {#if relationships.find(t => t.type === "cover_art")}
-            <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+            <div class="cover-container">
+                <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+                <img class="cover-backdrop" draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+            </div>
         {/if}
         <div class="info">
             <h1>{title}</h1>
@@ -433,7 +441,7 @@
         on:swiper={(e) => console.log(e.detail[0])}
     >
         <SwiperSlide>
-            <div style="min-height: 30rem;">
+            <div class="chapter-list" style="min-height: 30rem;">
                 <div class="state {state}">
                     <div class="progress" style="width: {progress * 100}%;"></div>
             
@@ -483,12 +491,12 @@
             </div>
         </SwiperSlide>
         <SwiperSlide>
-            <div style="min-height: 30rem;">
+            <div class="art-list" style="min-height: 30rem;">
                 <ArtList {mangaId} bind:selectedImage additionalList={additionalImages} />
             </div>
         </SwiperSlide>
         <SwiperSlide>
-            <div style="min-height: 30rem;">
+            <div class="more-info" style="min-height: 30rem;">
                 <div class="flex-wrapped">
                     {#if anilistData} {#await anilistData then data}                    
                         <div>
@@ -553,10 +561,78 @@
                 {/if}
             </div>
         </SwiperSlide>
+        <SwiperSlide>
+            <div class="characters" style="min-height: 30rem;">
+                {#await anilistData then data}{#if data}
+                    {#each data.characters.edges as character}
+                        <div class="character"  on:click={() => {selectedImage = character.node.image.large; selectedCharacter = character}} >
+                            <div class="container">
+                                <img src={character.node.image.large} alt="" />
+                                <img class="backdrop" src={character.node.image.large} alt="" />
+                            </div>
+                            <div>
+                                <h4>{character.node.name.userPreferred}</h4>
+                                <span class="role">{character.role}</span>
+                            </div>
+                        </div>
+                    {/each}
+                {/if}{/await}
+            </div>
+        </SwiperSlide>
     </Swiper>
 </main>
 
 <style>
+    .art-list {
+        margin-top: 2rem;
+    }
+    .chapter-list {
+        margin-top: 1rem;
+    }
+    .more-info {
+        margin-top: 2rem;
+    }
+    .characters {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-gap: 2rem;
+        padding: 1rem;
+    }
+    .character {
+        cursor: pointer;
+    }
+    .character img {
+        position: relative;
+        z-index: 1;
+        object-fit: cover;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 5px;
+    }
+    .container {
+        position: relative;
+    }
+    .container .backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        border-radius: 5px;
+        filter: blur(10px) saturate(100%);
+        z-index: 0;
+        transition: opacity .3s, filter .3s;
+    }
+    .container:hover .backdrop {
+        opacity: 1;
+        filter: blur(20px) saturate(150%);
+    }
+    .character .role {
+        font-size: 1rem;
+        color: rgb(175, 175, 175);
+    }
     h4 {
         margin: 0;
     }
@@ -578,6 +654,7 @@
     .infoflex.flex {
         margin: 15px;
         justify-content: start;
+        gap: 1rem;
     }
     .flex-wrapped {
         display: flex;
@@ -626,13 +703,37 @@
     .tabbed {
         min-height: 20rem;
     }
-    .cover {
-        border-radius: 10px;
+    .cover-container {
+        position: relative;
         height: 20rem;
+        flex-shrink: 0;
         margin-right: 15px;
         transition: height .3s;
     }
-    .smallScreenMode .cover {
+    .cover {
+        position: relative;
+        border-radius: 10px;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        cursor: pointer;
+    }
+    .cover-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: calc(100% + 4px);
+        height: calc(100% + 4px);
+        z-index: 0;
+        filter: blur(18px) saturate(100%);
+        transition: filter .3s;
+    }
+    .cover-container:hover .cover-backdrop {
+        filter: blur(30px) saturate(150%);
+    }
+    .smallScreenMode .cover-container {
         height: 12rem;
     }
     .block {
