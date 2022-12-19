@@ -64,6 +64,9 @@
 </div>
 
 <style>
+    .item {
+        color: white;
+    }
     .description {
         line-height: 1.5rem;
         height: calc(1.5rem * 3);
@@ -102,6 +105,9 @@
     }
     .cover-container {
         position: relative;
+    }
+    .list .cover-container {
+        flex-shrink: 0;
     }
     .over {
         display: -webkit-box;

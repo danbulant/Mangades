@@ -92,6 +92,8 @@
         $showNsfw;
         setTimeout(() => dispatch("slideToClosest"), 100);
     }
+
+    $: relations.then(relations => console.log("relations", relations));
 </script>
 
 <div class="flex">
@@ -101,7 +103,7 @@
 </div>
 
 <div class="grid" class:list={$showType == "list"}>
-    {#each mangaRelations.filter(t => $showNsfw !== "hide" || ["safe", "suggestive"].includes(t.attributes.contentRating)) as manga (manga.id)}
+    {#each mangaRelations.filter((t, i, a) => a.findIndex(b => b.id == t.id) == i).filter(t => $showNsfw !== "hide" || ["safe", "suggestive"].includes(t.attributes.contentRating)) as manga (manga.id)}
         <a href="/{manga.id}" class="manga" animate:flip={{ duration: d=>Math.sqrt(d)*10 }} transition:blur>
             {#await relations then relations}
                 <Item

@@ -37,7 +37,7 @@
 <svelte:window bind:innerWidth={width} on:keydown={handleKeyDown} />
 
 <div class="navbar flex" class:full-text={small && focused}>
-    <h1>Library</h1>
+    <a href="/"><h1>Library</h1></a>
 
     <div class="search">
         <input type="text" bind:this={textfield} on:focus={() => focused = true} on:blur={() => focused = false} placeholder="{isLogedIn() ? "Search for manga or enter URL of mangadex.org manga" : "Enter UUID or URL of mangadex.org manga"}" bind:value={name}>
@@ -61,6 +61,10 @@
 <div class="spacer"></div>
 
 <style>
+    a h1 {
+        color: white;
+        text-decoration: none;
+    }
     .full-text h1, .full-text .right {
         display: none;
     }

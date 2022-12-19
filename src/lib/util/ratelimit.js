@@ -2,7 +2,7 @@ const ratelimits = new Map();
 
 function callback({ func }) {
     const params = ratelimits.get(func);
-    console.log(params, func, ratelimits);
+    console.log("ratelimit", params, func, ratelimits);
     func(...params.params).then(params.result.resolve).catch(params.result.reject);
     ratelimits.delete(func);
 }

@@ -3,6 +3,7 @@
     import { flip } from "svelte/animate";
     import { blur } from "svelte/transition";
     import Item from "./item.svelte";
+    import { showNsfw } from "./showNsfwChooser.svelte";
     import { showType } from "./showTypeChooser.svelte";
 
     export var entries;
@@ -10,7 +11,7 @@
 
 
 <div class="items" class:list={$showType == "list"}>
-    {#each entries as entry (entry.id)}
+    {#each entries.filter(t => $showNsfw !== "hide" || ["safe", "suggestive"].includes(t.attributes.contentRating)) as entry (entry.id)}
         <a href="/{entry.id}" animate:flip transition:blur>
             <Item
                 r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)}

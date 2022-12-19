@@ -277,7 +277,7 @@
     let additionalImages = [];
 
     $: if(anilistData) anilistData.then(data => {
-        if(data.bannerImage && !additionalImages.find(t => t.src === data.bannerImage)) {
+        if(data && data.bannerImage && !additionalImages.find(t => t.src === data.bannerImage)) {
             additionalImages.push({
                 src: data.coverImage.large,
                 alt: "Cover image from anilist",
@@ -354,7 +354,7 @@
 </ArtDialog>
 
 {#if anilistData} {#await anilistData then data}
-    {#if data.bannerImage}
+    {#if data && data.bannerImage}
         <div class="banner-container">
             <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
             <div class="fader"></div>
@@ -380,7 +380,7 @@
                 {#if manga.year}
                     {manga.year} &middot;
                 {/if}
-                {#if anilistData} {#await anilistData then data} {data.status} &middot; {/await} {/if}
+                {#if anilistData} {#await anilistData then data}{#if data && data.status} {data.status} &middot; {/if} {/await} {/if}
                 {manga.contentRating}
             </h3>
             {#if relationships.find(t => t.type === "author")}
@@ -482,7 +482,7 @@
                     {/if}
                     <table>
                         <tbody>
-                            {#each chapters.data as chapter, i} 
+                            {#each chapters.data as chapter} 
                                 <Chapter progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
                             {/each}
                         </tbody>
@@ -498,7 +498,7 @@
         <SwiperSlide>
             <div class="more-info" style="min-height: 30rem;">
                 <div class="flex-wrapped">
-                    {#if anilistData} {#await anilistData then data}                    
+                    {#if anilistData} {#await anilistData then data} {#if data}              
                         <div>
                             <b>Genres</b>: {data.genres.join(", ")}
                             <br>
@@ -510,7 +510,7 @@
 
                             <br><br>
                         </div>
-                    {/await} {/if}
+                    {/if} {/await} {/if}
                     {#if manga.links}
                         <div>
                             <h4>Links</h4>
@@ -563,7 +563,7 @@
         </SwiperSlide>
         <SwiperSlide>
             <div class="characters" style="min-height: 30rem;">
-                {#await anilistData then data}{#if data}
+                {#await anilistData then data}{#if data && data.characters?.edges.length}
                     {#each data.characters.edges as character}
                         <div class="character"  on:click={() => {selectedImage = character.node.image.large; selectedCharacter = character}} >
                             <div class="container">
