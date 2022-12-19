@@ -15,7 +15,7 @@
         <a href="/{entry.id}" animate:flip transition:blur>
             <Item
                 r18={!["safe", "suggestive"].includes(entry.attributes.contentRating)}
-                cover={imageproxy + entry.relationships.find(t => t.type === "cover_art") ? `https://uploads.mangadex.org/covers/${entry.id}/${entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg` : null}
+                cover={imageproxy + entry.relationships.find(t => t.type === "cover_art") ? `${imageproxy}https://uploads.mangadex.org/covers/${entry.id}/${entry.relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg` : null}
                 title={entry.attributes.title.en || entry.attributes.title.ja || Object.values(entry.attributes.title)[0]}
                 lastChapter={entry.attributes.lastChapter}
                 lastVolume={entry.attributes.lastVolume}
