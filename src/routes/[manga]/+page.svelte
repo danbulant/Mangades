@@ -236,10 +236,10 @@
     var copyrightOpen = false;
 
     function selectAll() {
-        if(arraysEqual(selected, chapters)) {
+        if(arraysEqual(selected, chapters.data)) {
             selected = [];
         } else {
-            selected = chapters.slice();
+            selected = chapters.data.slice();
         }
         if(selected.length) {
             text = `Selected ${selected.length} chapters`;
@@ -470,7 +470,11 @@
                         </b>
                     </p>
                     <button on:click={selectAll}>
-                        Select all
+                        {#if chapters && chapters.data.length && arraysEqual(selected, chapters.data)}
+                            Deselect all
+                        {:else}
+                            Select all
+                        {/if}
                     </button>
                 </div>
 
