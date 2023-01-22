@@ -316,6 +316,8 @@
     $: if(!loadingNextPage && chapters && chapters.data.length < chapters.total && scrollY > 300 && scrollY > document.body.scrollHeight * 0.8) loadNextPage();
 
     var selectedCharacter = null;
+
+    $: if(!selectedImage) selectedCharacter = null;
 </script>
 
 <svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
