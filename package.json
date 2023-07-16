@@ -32,7 +32,7 @@
     "@sentry/browser": "^7.25.0",
     "@sentry/svelte": "^7.25.0",
     "@sentry/tracing": "^7.25.0",
-    "fflate": "^0.6.10",
+    "fflate": "^0.8.0",
     "streamsaver": "^2.0.6",
     "svelte-local-storage-store": "^0.3.1",
     "svelte-markdown": "^0.2.3",
