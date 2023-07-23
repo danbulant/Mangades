@@ -72,7 +72,7 @@ export class EpubGenerator extends BaseGenerator {
                 textContent.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
                 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
                 <head>
-                    <title>Page ${i + 1}</title>
+                    <title>Page ${Number(i) + Number(1)}</title>
                     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
                     <meta name="EPB-UUID" content=""/>
                 </head>
