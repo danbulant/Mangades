@@ -8,6 +8,10 @@ const enc = new TextEncoder();
  * Handles epub generation
  */
 export class EpubGenerator extends BaseGenerator {
+    writer: WritableStreamDefaultWriter<Uint8Array>;
+    zip: Zip;
+    hashes: { hash: string, chapter: string }[];
+
     async generate() {
         this.writer = this.opts.file.getWriter();
         this.zip = new Zip();
@@ -34,7 +38,7 @@ export class EpubGenerator extends BaseGenerator {
                 chapter.links = data.urls;
                 chapter.hashes = data.hashes;
                 chapter.hash = data.hash;
-                this.hashes.push(...chapter.hashes);
+                this.hashes.push(...(chapter.hashes.map(t => ({ hash: t, chapter: chapterI }))));
             }
         }
 
@@ -52,7 +56,7 @@ export class EpubGenerator extends BaseGenerator {
             for(const i in chapter.links) {
                 let url = chapter.links[i];
                 let hash = chapter.hashes[i];
-                this.callback(chapterI, i, false);
+                this.callback(chapterI, Number(i), false);
                 const start = performance.now();
                 const res = await this.fetchImage(url, chapter);
                 const image = new ZipPassThrough("OEBPS/" + hash);
@@ -67,12 +71,13 @@ export class EpubGenerator extends BaseGenerator {
                     url: url
                 });
                 image.push(data, true);
-                const textContent = new ZipPassThrough("OEBPS/" + i + ".xhtml");
+                let fileI = this.hashes.findIndex(t => t.hash === hash);
+                const textContent = new ZipPassThrough(`OEBPS/${fileI}.xhtml`);
                 this.zip.add(textContent);
                 textContent.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
                 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
                 <head>
-                    <title>Page ${i + 1}</title>
+                    <title>Chapter ${chapterI} Page ${Number(i) + 1}</title>
                     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
                     <meta name="EPB-UUID" content=""/>
                 </head>
@@ -80,7 +85,7 @@ export class EpubGenerator extends BaseGenerator {
                     <img style="margin:auto;height:100%;" src="${hash}" />
                 </body>
                 </html>`), true);
-                this.callback(chapterI, i, true);
+                this.callback(chapterI, Number(i), true);
             }
         }
 
@@ -113,28 +118,28 @@ export class EpubGenerator extends BaseGenerator {
 
         <metadata xmlns:opf="http://www.idpf.org/2007/opf"  xmlns:dc="http://purl.org/dc/elements/1.1/"
                 xmlns:dcterms="http://purl.org/dc/terms/">
-        <dc:title>${this.opts.title}</dc:title>
-        <dc:language>${this.opts.language || "en"}</dc:language>
-        <dc:creator>${this.opts.author}</dc:creator>
-        <dc:identifier id="bookid">${this.opts.id}</dc:identifier>
-        <dc:type>Image</dc:type>
+            <dc:title>${this.opts.title}</dc:title>
+            <dc:language>${this.opts.language || "en"}</dc:language>
+            <dc:creator>${this.opts.author}</dc:creator>
+            <dc:identifier id="bookid">${this.opts.id}</dc:identifier>
+            <dc:type>Image</dc:type>
 
-        <meta property="dcterms:modified">${this.opts.updatedAt.toString().split("+")[0]}Z</meta>
-        <meta property="rendition:layout">pre-paginated</meta>
-        <meta property="rendition:orientation">portrait</meta>
-        <meta property="rendition:spread">landscape</meta>
+            <meta property="dcterms:modified">${this.opts.updatedAt.toString().split("+")[0]}Z</meta>
+            <meta property="rendition:layout">pre-paginated</meta>
+            <meta property="rendition:orientation">portrait</meta>
+            <meta property="rendition:spread">landscape</meta>
         </metadata>
 
         <manifest>
-        ${this.hashes.map((t, i) => `    <item id="i${i}" href="${t}" fallback="fallback" media-type="image/${t.substr(t.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : t.substr(t.lastIndexOf(".") + 1)}"/>`).join("\n")}
+        ${this.hashes.map((t, i) => `    <item id="i${i}" href="${t.hash}" fallback="fallback" media-type="image/${t.hash.substr(t.hash.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : t.hash.substr(t.hash.lastIndexOf(".") + 1)}"/>`).join("\n")}
         ${this.hashes.map((t, i) => `    <item id="p${i}" href="${i}.xhtml"  media-type="application/xhtml+xml" />`).join("\n")}
 
-        <item id="ncxtoc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+            <item id="ncxtoc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
         </manifest>
 
         <spine toc="ncxtoc">
         ${this.hashes.map((t, i) => `    <itemref idref="p${i}" linear="yes" />`).join("\n")}
-        <itemref idref="fallback" linear="no" />
+            <itemref idref="fallback" linear="no" />
         </spine>
 
         </package>`), true);
@@ -142,6 +147,7 @@ export class EpubGenerator extends BaseGenerator {
 
     toc() {
         const ncx = new ZipPassThrough("OEBPS/toc.ncx");
+
         this.zip.add(ncx);
         ncx.push(enc.encode(`<?xml version="1.0" encoding="utf-8"?>
         <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
@@ -159,14 +165,14 @@ export class EpubGenerator extends BaseGenerator {
         </docAuthor>
 
         <navMap>
-        ${this.opts.chapters.map((t, i) => t.links.map((link, i) => `
-            <navPoint id="p${i}" playOrder="${i + 1}">
+        ${this.opts.chapters.map((t, i) => `
+            <navPoint id="p${this.hashes.findIndex(h => h.hash === t.hashes[0])}" playOrder="${i + 1}">
                 <navLabel>
-                    <text>${this.opts.title} Chapter ${t.number} Page ${i + 1}</text>
+                    <text>${this.opts.title} Chapter ${t.number}</text>
                 </navLabel>
-                <content src="${i}.xhtml"/>
+                <content src="${this.hashes.findIndex(h => h.hash === t.hashes[0])}.xhtml"/>
             </navPoint>
-        `)).flat().join("\n")}
+        `).flat().join("\n")}
         </navMap>
         </ncx>`), true);
     }

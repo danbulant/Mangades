@@ -1,38 +1,37 @@
-
-/**
- * @typedef Chapter
- * @property {string} id
- * @property {number} number
- * @property {number?} volume
- * @property {string[]} links
- * @property {string} hash
- * @property {string} baseUrl
- * @property {string} title
- */
-
 import request, { proxy, imageproxy } from "./request";
 
 const RETRY_LIMIT = 10;
+
+interface Chapter {
+    id: string,
+    number: string,
+    volume?: string,
+    links: string[],
+    hash: string,
+    hashes: string[],
+    baseUrl: string,
+    title: string
+}
+
+interface Opts {
+    quality: string,
+    file: WritableStream,
+    title: string,
+    id: string,
+    language: string,
+    author: string,
+    updatedAt: string | Date,
+    chapters: Chapter[],
+    callback?: (chapter: string | number, link: number, finished: boolean) => void,
+    onerror?: (error: Error) => void
+}
 
 /**
  * Base generator, to be extended
  */
 export class BaseGenerator {
-    /**
-     * 
-     * @param {object} opts
-     * @param {string} opts.quality
-     * @param {WritableStream} opts.file
-     * @param {string} opts.title
-     * @param {string} opts.id
-     * @param {string} opts.language
-     * @param {string} opts.author
-     * @param {string|Date} opts.updatedAt
-     * @param {Chapter[]} opts.chapters
-     * @param {(chapter: number, link: number, finished: boolean) => void} [opts.callback]
-     * @param {(error: Error) => void} [opts.onerror]
-     */
-    constructor(opts) {
+    opts: Opts;
+    constructor(opts: Opts) {
         this.opts = opts;
         this.opts.quality = "data";
     }
@@ -83,9 +82,9 @@ export class BaseGenerator {
      * @param {number} link 
      * @param {boolean} finished 
      */
-    callback(chapter = -1, link = -1, finished = false) {
+    callback(chapter: string | number = -1, link: number = -1, finished = false) {
         if(this.opts.callback) {
-            this.opts.callback(chapter, parseInt(link), finished);
+            this.opts.callback(chapter, Number(link), finished);
         }
     }
 }
