@@ -5,8 +5,8 @@
     import * as Sentry from '@sentry/svelte';
     import { BrowserTracing } from "@sentry/tracing";
     import { browser } from '$app/environment';
-    import { apm } from  "$lib/util/tracing";
-    import { page } from "$app/stores";
+    // import { apm } from  "$lib/util/tracing";
+    // import { page } from "$app/stores";
 
     export var data;
     // @ts-ignore
@@ -27,9 +27,9 @@
             autoSessionTracking: false
         });
     }
-    if(browser) {
-        apm.setInitialPageLoadName($page.route.id);
-    }
+    // if(browser) {
+    //     apm.setInitialPageLoadName($page.route.id);
+    // }
     
     let skipFirst = true;
     let last = typeof window !== "undefined" && window.location.pathname;
