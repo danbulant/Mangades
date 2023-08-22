@@ -12,11 +12,11 @@ export async function GET({ url }) {
 
     return json({
         headers: Object.fromEntries(ret.headers.entries()),
-        body: data,
         url: ret.url,
         original: url.searchParams.get('url'),
         code: ret.status,
         text: ret.statusText,
-        type: ret.type
+        type: ret.type,
+        body: data,
     });
 }
