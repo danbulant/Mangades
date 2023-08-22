@@ -13,7 +13,7 @@ export async function GET({ url }) {
 
             'Content-Type': ret.headers.get('Content-Type')!,
 
-            'Cache-Control': 'public, max-age=172800, immutable, stale-while-revalidate=345600, state-if-error=604800',
+            'Cache-Control': 'public, max-age=172800, immutable, stale-while-revalidate=345600, stale-if-error=604800',
             'Expires': new Date(Date.now() + 172800000).toUTCString()
         },
     });
