@@ -12,6 +12,8 @@ export async function GET({ url }) {
 
     return json({
         headers: Object.fromEntries(ret.headers.entries()),
-        body: data
+        body: data,
+        url: ret.url,
+        original: url.searchParams.get('url')
     });
 }
