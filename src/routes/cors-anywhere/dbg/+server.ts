@@ -14,6 +14,9 @@ export async function GET({ url }) {
         headers: Object.fromEntries(ret.headers.entries()),
         body: data,
         url: ret.url,
-        original: url.searchParams.get('url')
+        original: url.searchParams.get('url'),
+        code: ret.status,
+        text: ret.statusText,
+        type: ret.type
     });
 }
