@@ -368,7 +368,7 @@
     <div class="flex infoflex">
         {#if relationships.find(t => t.type === "cover_art")}
             <div class="cover-container">
-                <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+                <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `${imageproxy}https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
                 <img class="cover-backdrop" draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
             </div>
         {/if}
