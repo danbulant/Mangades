@@ -4,7 +4,7 @@
 
     export var source: string;
 
-    export var expanded = false;
+    export var expanded: boolean = false;
 </script>
 
 <div class="description" class:expanded>

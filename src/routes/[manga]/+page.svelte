@@ -17,6 +17,7 @@
     import Favicon from "./favicon.svelte";
     import RelatedManga from "./relatedManga.svelte";
     import { anilistInfo } from "./anilistInfo";
+    import { isLogedIn } from "$lib/util/anilist";
 
     export var data;
 
@@ -275,6 +276,7 @@
     var scrollY, innerHeight;
 
     let additionalImages = [];
+    let alReadProgress
 
     $: if(anilistData) anilistData.then(data => {
         if(data && data.bannerImage && !additionalImages.find(t => t.src === data.bannerImage)) {
@@ -293,6 +295,7 @@
                 width: 3
             });
             additionalImages = additionalImages;
+            alReadProgress = data.mediaListEntry?.progress;
             tabs = [...defaultTabs, "Characters"];
         }
     }); else {
@@ -318,13 +321,18 @@
     var selectedCharacter = null;
 
     $: if(!selectedImage) selectedCharacter = null;
+
+    let expanded = false;
+
+    let uniqueChapterCount;
+    $: uniqueChapterCount = chapters?.data.filter((t, i, a) => a.findIndex(t2 => Math.floor(t2.attributes.chapter) === Math.floor(t.attributes.chapter)) === i).length;
 </script>
 
 <svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
 
 <svelte:head>
     <title>{title} - Chapter list</title>
-	<meta name="description" value="Read {title} online, or download it as EPUB or CBZ file. Free of charge as well as free of ads." />
+	<meta name="description" content="Read {title} online, or download it as EPUB or CBZ file. Free of charge as well as free of ads." />
 </svelte:head>
 
 <Navbar transparent={scrollY < 0.2*innerHeight} {title} />
@@ -402,12 +410,12 @@
 
     {#if smallScreenMode && manga.description.en}
         <div class="fulldescription">
-            <ExpandableDescription source={manga.description.en} />
+            <ExpandableDescription source={manga.description.en} bind:expanded />
         </div>
     {/if}
 
     {#if manga.tags}
-        <div class="tags">
+        <div class="tags" class:expanded>
             {#each manga.tags as tag}
                 <span class="tag">{tag.attributes.name.en || tag.attributes.name.jp || Object.values(tag.attributes.name)[0]}</span>
             {/each}
@@ -416,7 +424,23 @@
 
     <div class="flex">
         <div class="linklist">
-            <a href="https://mangadex.org/title/{mangaId}">Mangadex.org</a>
+            {#if anilistData && isLogedIn()} {#await anilistData then data}
+            <a href="{data.siteUrl}" target="_blank" rel="noreferrer">
+                AL:
+                {#if data?.mediaListEntry?.status}{({
+                    CURRENT: "Reading",
+                    PLANNING: "Plan to read",
+                    COMPLETED: "Completed",
+                    DROPPED: "Dropped",
+                    PAUSED: "Paused",
+                    REPEATING: "Repeating"
+                }[data.mediaListEntry.status])}
+                CH {data.mediaListEntry.progress}/{data.chapters || "-"} ({uniqueChapterCount})
+                {:else}
+                    Not tracking
+                {/if}
+            </a>
+            {/await} {/if}
         </div>
         <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
     </div>
@@ -489,7 +513,7 @@
                     <table>
                         <tbody>
                             {#each chapters.data as chapter} 
-                                <Chapter progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
+                                <Chapter read={alReadProgress && alReadProgress >= parseInt(chapter.attributes.chapter)} progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
                             {/each}
                         </tbody>
                     </table>
@@ -497,13 +521,13 @@
             </div>
         </SwiperSlide>
         <SwiperSlide>
-            <div class="art-list" style="min-height: 30rem;">
+            <div class="art-list" style="min-height: 30rem; overflow: hidden;">
                 <ArtList {mangaId} bind:selectedImage additionalList={additionalImages} />
             </div>
         </SwiperSlide>
         <SwiperSlide>
             <div class="more-info" style="min-height: 30rem;">
-                <div class="flex-wrapped">
+                <div class="flex-wrapped" style="margin-bottom: 0.5rem;">
                     {#if anilistData} {#await anilistData then data} {#if data}              
                         <div>
                             <b>Genres</b>: {data.genres.join(", ")}
@@ -645,6 +669,9 @@
     .tags {
         display: flex;
         overflow: auto;
+    }
+    .tags.expanded {
+        flex-wrap: wrap;
     }
     .tag {
         margin: 5px;

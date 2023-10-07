@@ -6,6 +6,7 @@
     export var selected;
     export var disabledDownload = false;
     export var progress = 0;
+    export var read;
     var scanlationGroup = chapter.relationships.find(t => t.type === "scanlation_group")?.attributes.name;
 
     /**
@@ -25,7 +26,7 @@
     }
 </script>
 
-<tr class="chapter item" on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
+<tr class="chapter item" class:read on:mouseenter={mouseenter} on:click={click} class:selected={selected} style="background-image: linear-gradient(to right, rgba(0, 255, 0, 0.247) {progress * 100}%, transparent {progress * 100}%)">
     <td class="no-wrap">{chapter.attributes.volume ? "Vol " + chapter.attributes.volume : ""}</td>
     <td class="no-wrap">{chapter.attributes.chapter ? "Chapter " + chapter.attributes.chapter : ""}</td>
     <td>
@@ -42,6 +43,9 @@
         transition: background-image 0.3s;
         background-repeat: no-repeat;
         user-select: none;
+    }
+    .read {
+        color: grey;
     }
     .scanlation {
         color: grey;
