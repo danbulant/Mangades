@@ -2,7 +2,11 @@
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url }) {
     console.log("[CORS] " + url.searchParams.get('url'));
-    const ret = await fetch(url.searchParams.get('url'));
+    const ret = await fetch(url.searchParams.get('url'), {
+        headers: {
+            "User-agent": "manga.danbulant.eu (discord @techmandancz)"
+        }
+    });
     return new Response(await ret.arrayBuffer(), {
         headers: {
             ...ret.headers,

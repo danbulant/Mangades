@@ -3,7 +3,11 @@ import { json } from '@sveltejs/kit';
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url }) {
     console.log("[CORS-DBG] " + url.searchParams.get('url'));
-    const ret = await fetch(url.searchParams.get('url'));
+    const ret = await fetch(url.searchParams.get('url'), {
+        headers: {
+            "User-agent": "manga.danbulant.eu (discord @techmandancz)"
+        }
+    });
     let text = await ret.text();
     let data = text;
     try {
