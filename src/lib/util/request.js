@@ -11,6 +11,9 @@ export function getURL(endpoint, query) {
 function request(endpoint, query, type = "GET", body) {
     return fetch(getURL(endpoint, query), {
         method: type,
+        headers: typeof window === "undefined" ? {
+            "User-agent": "manga.danbulant.eu (discord @techmandancz)"
+        } : undefined,
         body: body ? JSON.stringify(body) : undefined
     }).then(resp => resp.json());
 }
