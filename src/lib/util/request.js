@@ -1,4 +1,4 @@
-export const proxy = "/cors-anywhere/?url="; //"https://cors-anywhere.danbulant.cloud/";
+export const proxy = "/cors-anywhere?url="; //"https://cors-anywhere.danbulant.cloud/";
 export const imageproxy = proxy; // "https://cors-anywhere.danbulant.workers.dev/?";
 export const base = proxy + encodeURIComponent("https://api.mangadex.org/");
 export const baseServer = "https://api.mangadex.org/";
