@@ -10,12 +10,10 @@
     if(browser) {
         apm.setInitialPageLoadName($page.route.id);
     }
-    
-    let skipFirst = true;
+
     let last = typeof window !== "undefined" && window.location.pathname;
     afterNavigate(page => {
         if(!["link", "popstate"].includes(page.type)) return; // ignore post hydration and automatic goto
-        if(skipFirst) return skipFirst = false;
         if(window.goatcounter) window.goatcounter.count({
             path: window.location.pathname,
             title: page.title,
