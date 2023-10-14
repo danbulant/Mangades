@@ -13,7 +13,7 @@ export async function GET({ url }) {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, HEAD, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Requested-With, sentry-trace, baggage, traceparent, tracestate',
-            'Access-Control-Max-Age': '86400',
+            'Access-Control-Max-Age': '172800',
 
             'Content-Type': ret.headers.get('Content-Type')!,
 
