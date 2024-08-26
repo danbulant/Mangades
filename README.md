@@ -1,8 +1,5 @@
 # Mangades
 
-Mangadex viewer and downloader. Uses svelte+routify.
+Mangadex viewer and downloader website, with read-only anilist integration.
 
-Minimalistic.
-
-
-See it live [here at manga.danbulant.eu](https://manga.danbulant.eu).
+See it in action [here](https://manga.danbulant.eu).

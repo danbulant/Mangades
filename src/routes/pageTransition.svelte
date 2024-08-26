@@ -1,9 +1,9 @@
 <script>
     import { fade } from "svelte/transition";
-    export let url = "";
+    export let inc;
 </script>
 
-{#key url}
+{#key inc}
     <div
         in:fade={{ opacity: 1, duration: 200, delay: 150 }}
         out:fade={{ opacity: 0, duration: 200 }}

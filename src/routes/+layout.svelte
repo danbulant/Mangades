@@ -2,14 +2,8 @@
     import { afterNavigate } from "$app/navigation";
     import { logs } from "$lib/util/logs";
     import PageTransition from "./pageTransition.svelte";
-    import { browser } from '$app/environment';
-    import { apm } from  "$lib/util/tracing";
-    import { page } from "$app/stores";
 
     export var data;
-    if(browser) {
-        apm.setInitialPageLoadName($page.route.id);
-    }
 
     let last = typeof window !== "undefined" && window.location.pathname;
     afterNavigate(page => {
@@ -39,10 +33,23 @@
     } else {
         document.body.classList.remove("dark");
     }
+    
+    let inc = 0;
+    let lastUrl = data.url;
+    function increase() {
+        if(lastUrl == data.url) return;
+        let pagesToTransitionTo = ['/', '/about', '/callback', '/random']
+        if(pagesToTransitionTo.includes(data.url) || pagesToTransitionTo.find(t => data.url.startsWith(t + '?'))) {
+            inc++
+        }
+        lastUrl = data.url;
+    }
+    
+    $: increase(data.url)
 </script>
 
 <div class:dark={darkmode} class="main">
-    <PageTransition url={data.url}>
+    <PageTransition {inc}>
         <slot />
     </PageTransition>
 </div>
@@ -91,7 +98,8 @@
         position: fixed;
         bottom: 0;
         right: 0;
-        background: white;
+        background: black;
+        color: white;
         border-radius: 5px 0 0 0;
         padding: 5px;
         box-shadow: 0 0 2px 0 black;

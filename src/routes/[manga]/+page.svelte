@@ -273,7 +273,7 @@
     var smallScreenMode = width < 700;
     $: smallScreenMode = width < 700;
 
-    var scrollY, innerHeight;
+    var scrollY = 0, innerHeight = 1;
 
     let additionalImages = [];
     let alReadProgress
@@ -363,98 +363,101 @@
     {/if}
 </ArtDialog>
 
-{#if anilistData} {#await anilistData then data}
-    {#if data && data.bannerImage}
-        <div class="banner-container">
-            <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
-            <div class="fader"></div>
-        </div>
-    {/if}
-{/await} {/if}
 
 <main class:smallScreenMode>
-    <div class="flex infoflex">
-        {#if relationships.find(t => t.type === "cover_art")}
-            <div class="cover-container">
-                <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `${imageproxy}https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
-                <img class="cover-backdrop" draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+    <div class="header">
+        {#if anilistData} {#await anilistData then data}
+            {#if data && data.bannerImage}
+                <div class="banner-container">
+                    <img class="banner" src={data.bannerImage} on:click={() => selectedImage = data.bannerImage} alt="">
+                    <div class="fader"></div>
+                </div>
+            {/if}
+        {/await} {/if}
+        
+        <div class="flex infoflex">
+            {#if relationships.find(t => t.type === "cover_art")}
+                <div class="cover-container">
+                    <img class="cover" class:r18={!["safe", "suggestive"].includes(manga.contentRating)} draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="" on:click={() => selectedImage = `${imageproxy}https://uploads.mangadex.org/covers/${mangaId}/${relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg`}>
+                    <img class="cover-backdrop" draggable="false" src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{relationships.find(t => t.type === "cover_art").attributes.fileName}.512.jpg" alt="">
+                </div>
+            {/if}
+            <div class="info">
+                <h1>{title}</h1>
+            
+                <h3>
+                    {#if manga.altTitles.find(t => t.en)}
+                        {manga.altTitles.find(t => t.en)?.en} &middot;
+                    {/if}
+                    {#if manga.year}
+                        {manga.year} &middot;
+                    {/if}
+                    {#if anilistData} {#await anilistData then data}{#if data && data.status} {data.status} &middot; {/if} {/await} {/if}
+                    {manga.contentRating}
+                </h3>
+                {#if relationships.find(t => t.type === "author")}
+                    <span class="block author">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
+                {/if}
+                {#if relationships.find(t => t.type === "artist")}
+                    <span class="block author">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
+                {/if}
+                {#if relationships.find(t => t.related === "colored" && t.type === "manga")}
+                    <a href="/{relationships.find(t => t.related === "colored" && t.type === "manga").id}" class="block">Colored version</a>
+                {/if}
+                {#if !smallScreenMode && manga.description.en}
+                    <p class="description"><SvelteMarkdown source={manga.description.en} isInline /></p>
+                {/if}
+            </div>
+        </div>
+    
+        {#if smallScreenMode && manga.description.en}
+            <div class="fulldescription">
+                <ExpandableDescription source={manga.description.en} bind:expanded />
             </div>
         {/if}
-        <div class="info">
-            <h1>{title}</h1>
-        
-            <h3>
-                {#if manga.altTitles.find(t => t.en)}
-                    {manga.altTitles.find(t => t.en)?.en} &middot;
-                {/if}
-                {#if manga.year}
-                    {manga.year} &middot;
-                {/if}
-                {#if anilistData} {#await anilistData then data}{#if data && data.status} {data.status} &middot; {/if} {/await} {/if}
-                {manga.contentRating}
-            </h3>
-            {#if relationships.find(t => t.type === "author")}
-                <span class="block author">Author: {relationships.find(t => t.type === "author").attributes.name}</span>
-            {/if}
-            {#if relationships.find(t => t.type === "artist")}
-                <span class="block author">Artist: {relationships.find(t => t.type === "artist").attributes.name}</span>
-            {/if}
-            {#if relationships.find(t => t.related === "colored" && t.type === "manga")}
-                <a href="/{relationships.find(t => t.related === "colored" && t.type === "manga").id}" class="block">Colored version</a>
-            {/if}
-            {#if !smallScreenMode && manga.description.en}
-                <p class="description"><SvelteMarkdown source={manga.description.en} isInline /></p>
-            {/if}
+    
+        {#if manga.tags}
+            <div class="tags" class:expanded>
+                {#each manga.tags as tag}
+                    <span class="tag">{tag.attributes.name.en || tag.attributes.name.jp || Object.values(tag.attributes.name)[0]}</span>
+                {/each}
+            </div>
+        {/if}
+    
+        <div class="flex">
+            <div class="linklist">
+                {#if anilistData && isLogedIn()} {#await anilistData then data}
+                <a href="{data.siteUrl}" target="_blank" rel="noreferrer">
+                    AL:
+                    {#if data?.mediaListEntry?.status}{({
+                        CURRENT: "Reading",
+                        PLANNING: "Plan to read",
+                        COMPLETED: "Completed",
+                        DROPPED: "Dropped",
+                        PAUSED: "Paused",
+                        REPEATING: "Repeating"
+                    }[data.mediaListEntry.status])}
+                    CH {data.mediaListEntry.progress}/{data.chapters || "-"} ({uniqueChapterCount})
+                    {:else}
+                        Not tracking
+                    {/if}
+                </a>
+                {/await} {/if}
+            </div>
+            <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
         </div>
+    
+        {#if copyrightOpen}
+            <p class="copyright" transition:slide={{ duration: 500 }}>
+                Open <a href="https://mangadex.org/title/{mangaId}">Mangadex.org page of this manga</a>, select MORE and click REPORT. I cannot delete the content, even if you report it to this website's hosting, as this is just one of many clients to mangadex.
+                <br>
+                <br>
+                In case of reports, I can just block the content from being loaded in this page, but that doesn't mean it's deleted nor that any other client can't access it. To properly request deletion, contact Mangadex.org. After it's deleted from Mangadex.org, this website will no longer allow access to it (since it physically cannot, as it doesn't store any content).
+            </p>
+        {/if}
+    
+        <br>
     </div>
-
-    {#if smallScreenMode && manga.description.en}
-        <div class="fulldescription">
-            <ExpandableDescription source={manga.description.en} bind:expanded />
-        </div>
-    {/if}
-
-    {#if manga.tags}
-        <div class="tags" class:expanded>
-            {#each manga.tags as tag}
-                <span class="tag">{tag.attributes.name.en || tag.attributes.name.jp || Object.values(tag.attributes.name)[0]}</span>
-            {/each}
-        </div>
-    {/if}
-
-    <div class="flex">
-        <div class="linklist">
-            {#if anilistData && isLogedIn()} {#await anilistData then data}
-            <a href="{data.siteUrl}" target="_blank" rel="noreferrer">
-                AL:
-                {#if data?.mediaListEntry?.status}{({
-                    CURRENT: "Reading",
-                    PLANNING: "Plan to read",
-                    COMPLETED: "Completed",
-                    DROPPED: "Dropped",
-                    PAUSED: "Paused",
-                    REPEATING: "Repeating"
-                }[data.mediaListEntry.status])}
-                CH {data.mediaListEntry.progress}/{data.chapters || "-"} ({uniqueChapterCount})
-                {:else}
-                    Not tracking
-                {/if}
-            </a>
-            {/await} {/if}
-        </div>
-        <div class="copyright-header" class:copyright-header-active={copyrightOpen} on:click={() => copyrightOpen = !copyrightOpen}>Copyright infringement? (click)</div>
-    </div>
-
-    {#if copyrightOpen}
-        <p class="copyright" transition:slide={{ duration: 500 }}>
-            Open <a href="https://mangadex.org/title/{mangaId}">Mangadex.org page of this manga</a>, select MORE and click REPORT. I cannot delete the content, even if you report it to this website's hosting, as this is just one of many clients to mangadex.
-            <br>
-            <br>
-            In case of reports, I can just block the content from being loaded in this page, but that doesn't mean it's deleted nor that any other client can't access it. To properly request deletion, contact Mangadex.org. After it's deleted from Mangadex.org, this website will no longer allow access to it (since it physically cannot, as it doesn't store any content).
-        </p>
-    {/if}
-
-    <br>
 
     <Tabs list={tabs} bind:selected={selectedTab} />
 
@@ -546,40 +549,40 @@
                             <h4>Links</h4>
 
                             {#if manga.links.al}
-                                <a href="https://anilist.co/manga/{manga.links.al}"><Favicon url="https://anilist.co" /> Anilist</a> <br>
+                                <a target="_blank" href="https://anilist.co/manga/{manga.links.al}"><Favicon url="https://anilist.co" /> Anilist</a> <br>
                             {/if}
                             {#if manga.links.ap}
-                                <a href="https://www.anime-planet.com/manga/{manga.links.ap}"><Favicon url="https://anime-planet.com" /> Animeplanet</a> <br>
+                                <a target="_blank" href="https://www.anime-planet.com/manga/{manga.links.ap}"><Favicon url="https://anime-planet.com" /> Animeplanet</a> <br>
                             {/if}
                             {#if manga.links.bw}
-                                <a href="https://bookwalker.jp/{manga.links.bw}"><Favicon url="https://bookwalker.jp" /> Bookwalker</a> <br>
+                                <a target="_blank" href="https://bookwalker.jp/{manga.links.bw}"><Favicon url="https://bookwalker.jp" /> Bookwalker</a> <br>
                             {/if}
                             {#if manga.links.mu}
-                                <a href="https://www.mangaupdates.com/series.html?id={manga.links.mu}"><Favicon url="https://www.mangaupdates.com" /> Manga updates</a> <br>
+                                <a target="_blank" href="https://www.mangaupdates.com/series.html?id={manga.links.mu}"><Favicon url="https://www.mangaupdates.com" /> Manga updates</a> <br>
                             {/if}
                             {#if manga.links.nu}
-                                <a href="https://www.novelupdates.com/series/{manga.links.nu}"><Favicon url="https://www.novelupdates.com" /> Novel updates</a> <br>
+                                <a target="_blank" href="https://www.novelupdates.com/series/{manga.links.nu}"><Favicon url="https://www.novelupdates.com" /> Novel updates</a> <br>
                             {/if}
                             {#if manga.links.amz}
-                                <a href={manga.links.amz}><Favicon url={manga.links.amz} /> Amazon</a> <br>
+                                <a target="_blank" href={manga.links.amz}><Favicon url={manga.links.amz} /> Amazon</a> <br>
                             {/if}
                             {#if manga.links.ebj}
-                                <a href={manga.links.ebj}><Favicon url={manga.links.ebj} /> Ebookjapan</a> <br>
+                                <a target="_blank" href={manga.links.ebj}><Favicon url={manga.links.ebj} /> Ebookjapan</a> <br>
                             {/if}
                             {#if manga.links.mal}
-                                <a href="https://myanimelist.net/manga/{manga.links.mal}"><Favicon url="https://myanimelist.net" /> MyAnimeList</a> <br>
+                                <a target="_blank" href="https://myanimelist.net/manga/{manga.links.mal}"><Favicon url="https://myanimelist.net" /> MyAnimeList</a> <br>
                             {/if}
                             {#if manga.links.cdj}
-                                <a href="{manga.links.cdj}"><Favicon url={manga.links.cdj} /> CDJapan</a> <br>
+                                <a target="_blank" href="{manga.links.cdj}"><Favicon url={manga.links.cdj} /> CDJapan</a> <br>
                             {/if}
                             {#if manga.links.raw}
-                                <a href="{manga.links.raw}"><Favicon url={manga.links.raw} /> RAW</a> <br>
+                                <a target="_blank" href="{manga.links.raw}"><Favicon url={manga.links.raw} /> RAW</a> <br>
                             {/if}
                             {#if manga.links.engtl}
-                                <a href="{manga.links.engtl}"><Favicon url={manga.links.engtl} /> engtl</a> <br>
+                                <a target="_blank" href="{manga.links.engtl}"><Favicon url={manga.links.engtl} /> engtl</a> <br>
                             {/if}
 
-                            <a href="https://mangadex.org/title/{mangaId}"><Favicon url="https://mangadex.org"/> Mangadex.org</a>
+                            <a target="_blank" href="https://mangadex.org/title/{mangaId}"><Favicon url="https://mangadex.org"/> Mangadex.org</a>
                         </div>
                     {/if}
                 </div>
@@ -613,17 +616,22 @@
 </main>
 
 <style>
+    .header {
+        position: relative;
+        padding-top: 5rem;
+        overflow: hidden;
+    }
     .art-list {
-        margin-top: 2rem;
+        margin: 1rem 2rem 1rem 1rem;
     }
     .chapter-list {
-        margin-top: 1rem;
+        margin: 1rem;
     }
     .more-info {
-        margin-top: 2rem;
+        margin: 1rem 2rem 1rem 1rem;
     }
     .characters {
-        margin-top: 1rem;
+        margin: 1rem;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         grid-gap: 2rem;
@@ -669,6 +677,9 @@
     .tags {
         display: flex;
         overflow: auto;
+        margin: 0 1rem;
+        position: relative;
+        z-index: 1;
     }
     .tags.expanded {
         flex-wrap: wrap;
@@ -688,6 +699,8 @@
         margin: 15px;
         justify-content: start;
         gap: 1rem;
+        position: relative;
+        z-index: 1;
     }
     .flex-wrapped {
         display: flex;
@@ -705,15 +718,17 @@
         filter: blur(0);
     }
     .banner-container {
+        margin-top: -5rem;
         width: 100%;
-        max-height: 40vh;
+        max-height: 100%;
         position: absolute;
         z-index: 0;
         user-select: none;
     }
     .banner {
         width: 100%;
-        max-height: 40vh;
+        max-height: 100%;
+        height: 100%;
         object-fit: cover;
         object-position: center top;
         overflow: hidden;
@@ -771,9 +786,6 @@
     }
     .block {
         display: block;
-    }
-    .flex {
-        display: flex;
     }
     h1 {
         margin: 0;
@@ -835,11 +847,10 @@
     }
     main {
         font-size: 1.1rem;
-        padding-bottom: 1rem;
         position: relative;
         z-index: 1;
-        /* background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0vh, rgba(0,0,0,1) 30vh); */
-        padding-top: 5rem;
+        
+        padding: 0 0 1rem 0;
     }
     .no-wrap {
         white-space: nowrap;

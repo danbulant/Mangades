@@ -6,16 +6,20 @@
 	import ratelimit from '$lib/util/ratelimit';
 	import MangadexItems from '$lib/components/mangadexItems.svelte';
     import { goto } from "$app/navigation";
-
-    import type { load } from "./+page";
     import Navbar from "$lib/components/navbar.svelte";
     import ShowNsfwChooser, { showNsfw } from "$lib/components/showNsfwChooser.svelte";
+
+    import type { load } from "./+page";
     export var data: Awaited<ReturnType<typeof load>>;
 
 	var name: string = typeof window === "undefined" ? "" : data.url.searchParams.get("search") || "";
     $: if(typeof window !== "undefined") {
         const url = new URL(window.location.toString());
-        url.searchParams.set("search", name || "");
+        if(name) {
+            url.searchParams.set("search", name || "");
+        } else {
+            url.searchParams.delete("search");
+        }
         history.replaceState(history.state, "", url.toString());
     }
 
@@ -131,7 +135,7 @@
                 <div class="nsfw">
                     <ShowNsfwChooser />
                 </div>
-                <a href="https://discord.gg/XKPbz5xRuK">Made by TechmandanCZ#3372</a>
+                <span>Made by <a href="https://discord.gg/XKPbz5xRuK">techmandancz</a></span>
             </div>
             <div>
                 <a href="/random" class="button" style="width: 100%; margin-bottom: 0.4rem; display: inline-block;">Random</a>

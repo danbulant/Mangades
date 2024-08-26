@@ -1,5 +1,9 @@
 const ratelimits = new Map();
 
+export function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function callback({ func }) {
     const params = ratelimits.get(func);
     console.log("ratelimit", params, func, ratelimits);

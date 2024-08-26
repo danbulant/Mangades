@@ -12,6 +12,9 @@
 <style>
     div {
         display: flex;
+        margin: 0 1rem;
+        position: relative;
+        z-index: 1;
     }
     button {
         border-radius: 0;
