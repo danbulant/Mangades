@@ -30,16 +30,19 @@
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
+    const defaultLanguages = ["en", "uk"];
+    let languages = defaultLanguages;
+
     let anilistData;
     $: anilistData = manga.links && manga.links.al && anilistInfo(manga.links.al);
 
     let cache: { id: string, data: any, total } | null = null;
-    async function getMangaChapters(id) {
+    async function getMangaChapters(id, languages) {
         if(cache?.id === id && cache.data.length >= cache.total) return cache;
         const params = new URLSearchParams();
         params.append("limit", "500");
-        params.append("translatedLanguage[]", "en");
-        params.append("translatedLanguage[]", "uk");
+        for(let lang of languages)
+            params.append("translatedLanguage[]", lang);
         params.append("includes[]", "scanlation_group");
         params.append("contentRating[]", "safe");
         params.append("contentRating[]", "suggestive");
@@ -58,7 +61,7 @@
     var loadingChapters = false;
     $: if(chapters?.id !== mangaId && !loadingChapters) {
         loadingChapters = true;
-        getMangaChapters(mangaId).then(async data => {
+        getMangaChapters(mangaId, languages).then(async data => {
             chapters = data;
             await tick();
             swiper.slideToClosest();
@@ -326,6 +329,22 @@
 
     let uniqueChapterCount;
     $: uniqueChapterCount = chapters?.data.filter((t, i, a) => a.findIndex(t2 => Math.floor(t2.attributes.chapter) === Math.floor(t.attributes.chapter)) === i).length;
+
+    let list: any;
+    $: list = request(
+        "cover?limit=50&manga[]=" + mangaId + languages.map(t => "&locales[]=" + t).join("")
+    );
+
+    function toggleLang(lang) {
+        return () => {
+            if(languages.includes(lang)) {
+                languages = languages.filter(t => t !== lang);
+            } else {
+                languages.push(lang);
+                languages = languages;
+            }
+        }
+    }
 </script>
 
 <svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
@@ -423,6 +442,16 @@
                 {/each}
             </div>
         {/if}
+
+        <div class="langs">
+            {#each manga.availableTranslatedLanguages as lang}
+                <button class:enabled={languages.includes(lang)} on:click={toggleLang(lang)}>
+                    {lang}
+                </button>
+            {:else}
+                No languages available
+            {/each}
+        </div>
     
         <div class="flex">
             <div class="linklist">
@@ -491,7 +520,10 @@
                     <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
                     <button disabled={!selected.length} on:click={downloadSeparate}>Download Separate</button>
                 </div>
-            
+                <div class="download-options">
+
+                </div>
+
                 <div class="flex">
                     <p>
                         <b>
@@ -525,7 +557,7 @@
         </SwiperSlide>
         <SwiperSlide>
             <div class="art-list" style="min-height: 30rem; overflow: hidden;">
-                <ArtList {mangaId} bind:selectedImage additionalList={additionalImages} />
+                <ArtList {mangaId} {list} bind:selectedImage additionalList={additionalImages} />
             </div>
         </SwiperSlide>
         <SwiperSlide>
@@ -616,6 +648,26 @@
 </main>
 
 <style>
+    .linklist {
+        margin: 0 1rem;
+    }
+    .langs {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0 1rem;
+        overflow-x: auto;
+    }
+    .langs button {
+        padding: 0.5rem;
+        border-radius: 5px;
+        background: rgb(64,64,64);
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .langs button.enabled {
+        background: rgb(107, 107, 107);
+    }
     .header {
         position: relative;
         padding-top: 5rem;

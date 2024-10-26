@@ -1,7 +1,7 @@
 <script lang="ts">
     import request, { imageproxy } from "$lib/util/request";
 
-    export var mangaId: string;
+    // export var mangaId: string;
     export var additionalList: {
         alt: string;
         src: string;
@@ -9,11 +9,11 @@
         height?: number;
         color?: string;
     }[] = [];
+    export var list;
+    export var mangaId;
 
-    let list: any;
-    $: list = request(
-        "cover?manga[]=" + mangaId + "&locales[]=en&locales[]=uk&locales[]=ja"
-    );
+    $: console.log(list)
+    $: list.then(t => console.log(t))
 
     export var selectedImage = null;
 </script>
