@@ -35,6 +35,12 @@
         Epub = "epub",
         Cbz = "cbz"
     }
+    enum ChapterOrder {
+        Asc = "asc",
+        Desc = "desc"
+    }
+
+    let order = ChapterOrder.Desc;
 
     export var data;
 
@@ -53,9 +59,11 @@
     let anilistData;
     $: anilistData = manga.links && manga.links.al && anilistInfo(manga.links.al);
 
-    let cache: { id: string, data: any, total } | null = null;
-    async function getMangaChapters(id, languages) {
-        if(cache?.id === id && cache.data.length >= cache.total) return cache;
+    let cache: { id: string, data: any, languages, total, order: ChapterOrder } | null = null;
+    async function getMangaChapters(id, languages: string[], order: ChapterOrder) {
+        console.log("Getting chapters", id, languages, order);
+        if(cache?.id === id && cache.data.length >= cache.total && cache.order == order && arraysEqual(cache.languages, languages)) return cache;
+        loadingChapters = true
         const params = new URLSearchParams();
         params.append("limit", "500");
         for(let lang of languages)
@@ -65,27 +73,28 @@
         params.append("contentRating[]", "suggestive");
         params.append("contentRating[]", "erotica");
         params.append("contentRating[]", "pornographic");
-        params.append("order[chapter]", "asc");
-        params.append("offset", cache?.id === id && cache?.data.length.toString() || 0);
+        params.append("order[chapter]", order);
+        params.append("offset", (cache?.id === id && cache.order === order && arraysEqual(cache.languages, languages)) && cache?.data.length.toString() || 0);
         const data = await request("manga/" + id + "/feed?" + params.toString());
-        if(!cache || cache.id !== id) cache = { id, data: [], total: 0 };
+        if(!cache || cache.id !== id || cache.order !== order || arraysEqual(cache.languages, languages)) cache = { id, data: [], total: 0, languages: languages.slice(), order };
         cache.total = data.total;
         cache.data = cache.data.concat(data.data);
-        return cache;
+        cache.languages = languages.slice();
+        cache.order = order;
+        loadingChapters = false;
+        return chapters = cache;
     }
     
     var chapters;
     var loadingChapters = false;
-    $: if(chapters?.id !== mangaId && !loadingChapters) {
-        loadingChapters = true;
-        getMangaChapters(mangaId, languages).then(async data => {
-            chapters = data;
+    $: if(!loadingChapters) {
+        getMangaChapters(mangaId, languages, order).then(async () => {
             await tick();
             swiper.slideToClosest();
-            loadingChapters = false;
         });
     }
 
+    $: console.log(loadingChapters, chapters)
 
     console.log("manga", manga);
     console.log("chapters", chapters);
@@ -254,13 +263,17 @@
                 break;
             case CoverArt.AutoVolume:
                 let art = await list;
-                items = files.map(file => {
+                items = await Promise.all(files.map(async file => {
+                    let cover = coverForVolumeFromArt(file[0].attributes.volume, art);
+                    if(!cover) {
+                        cover = imageproxy + (await getURLs(file[0])).urls[0];
+                    }
                     return {
                         title: `${title} - ${getNameOf(file)}.${format}`,
                         chapters: file.map(chapter => `${chapter.attributes.chapter}`),
-                        cover: coverForVolumeFromArt(file[0].attributes.volume, art),
+                        cover,
                     };
-                });
+                }));
         }
         return items
     }
@@ -392,7 +405,7 @@
         if(loadingNextPage) return;
         console.log("Loading next page");
         loadingNextPage = true;
-        chapters = await getMangaChapters(mangaId, languages);
+        chapters = await getMangaChapters(mangaId, languages, order);
         await tick();
         loadingNextPage = false;
         swiper.slideToClosest();
@@ -434,6 +447,10 @@
 
     let coverArt: CoverArt = CoverArt.FirstPage;
     let group: Group = Group.Single;
+
+    let downloadPreview = false;
+
+    $: console.log("order", order)
 </script>
 
 <svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
@@ -602,7 +619,10 @@
                                 {text}
                             </p>
                         </div>
-                        <button class="download-btn" disabled={!selected.length} on:click={downloadMulti}>Download</button>
+                        <div>
+                            <button class="download-btn" disabled={!selected.length} on:click={downloadMulti}>Download</button>
+                            <button disabled={!selected.length && !downloadPreview} on:click={() => downloadPreview = !downloadPreview}>{downloadPreview ? "Hide" : "Show"} preview</button>
+                        </div>
                     </div>
                     <div class="options">
                         <fieldset>
@@ -653,15 +673,17 @@
                     </div>
                     <p class="note">Splitting into multiple files may require browser permission.</p>
 
-                    <h3>Preview</h3>
+                    {#if downloadPreview}
+                        <h3>Preview</h3>
 
-                    <ShowTypeChooser />
+                        <ShowTypeChooser />
 
-                    {#await previewItems(selected, group, coverArt, format)}
-                        <div>Loading preview...</div>
-                    {:then items}
-                        <FileItems chapters={items} />
-                    {/await}
+                        {#await previewItems(selected, group, coverArt, format)}
+                            <div>Loading preview...</div>
+                        {:then items}
+                            <FileItems chapters={items} />
+                        {/await}
+                    {/if}
                 </div>
 
                 <div class="flex">
@@ -670,13 +692,18 @@
                             Do not close the tab when a download is in progress.
                         </b>
                     </p>
-                    <button on:click={selectAll}>
-                        {#if chapters && chapters.data.length && arraysEqual(selected, chapters.data)}
-                            Deselect all
-                        {:else}
-                            Select all
-                        {/if}
-                    </button>
+                    <div>
+                        <button on:click={() => order = order == ChapterOrder.Asc ? ChapterOrder.Desc : ChapterOrder.Asc}>
+                            {order === ChapterOrder.Desc ? "Newest first" : "Oldest first"}
+                        </button>
+                        <button on:click={selectAll}>
+                            {#if chapters && chapters.data.length && arraysEqual(selected, chapters.data)}
+                                Deselect all
+                            {:else}
+                                Select all
+                            {/if}
+                        </button>
+                    </div>
                 </div>
 
                 {#if !chapters}
