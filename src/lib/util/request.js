@@ -18,4 +18,8 @@ function request(endpoint, query, type = "GET", body) {
     }).then(resp => resp.json());
 }
 
+export function coverUrl(mangaId, item) {
+    return `${imageproxy}https://uploads.mangadex.org/covers/${mangaId}/${item.attributes.fileName}.512.jpg`
+}
+
 export default request;

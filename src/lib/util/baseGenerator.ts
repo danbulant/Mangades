@@ -6,15 +6,16 @@ interface Chapter {
     id: string,
     number: string,
     volume?: string,
-    links: string[],
-    hash: string,
-    hashes: string[],
-    baseUrl: string,
+    links?: string[],
+    hash?: string,
+    hashes?: string[],
+    // baseUrl?: string,
     title: string
 }
 
 interface Opts {
-    quality: string,
+    coverUrl?: string
+    quality?: string,
     file: WritableStream,
     title: string,
     id: string,
@@ -24,6 +25,30 @@ interface Opts {
     chapters: Chapter[],
     callback?: (chapter: string | number, link: number, finished: boolean) => void,
     onerror?: (error: Error) => void
+}
+
+let cache = new Map
+
+/**
+ * @param {string | Chapter | any} chapter 
+ * @returns {Promise<{ urls: string[], hashes: string[], hash: string[] }>}
+ */
+export function getURLs(chapter: string | Chapter): Promise<{ urls: string[], hashes: string[], hash: string }> {
+    if(typeof chapter === "object") chapter = chapter.id;
+    const quality = "data";
+    if (!cache.has(chapter))
+        cache.set(chapter, (async() => {
+            console.log(chapter)
+            const data = await request("at-home/server/" + chapter);
+            console.log(data)
+            let obj = {
+                urls: data.chapter[quality].map(t => `${data.baseUrl}/${quality}/${data.chapter.hash}/${t}`),
+                hashes: data.chapter[quality],
+                hash: data.chapter.hash
+            }
+            return obj;
+        })())
+    return cache.get(chapter);
 }
 
 /**
@@ -42,15 +67,8 @@ export class BaseGenerator {
      * @param {string | Chapter | any} chapter 
      * @returns {Promise<{ urls: string[], hashes: string[], hash: string[] }>}
      */
-    async getURLs(chapter) {
-        if(typeof chapter === "object") chapter = chapter.id;
-        const data = await request("at-home/server/" + chapter);
-        console.log(data, this.opts);
-        return {
-            urls: data.chapter[this.opts.quality].map(t => `${data.baseUrl}/${this.opts.quality}/${data.chapter.hash}/${t}`),
-            hashes: data.chapter[this.opts.quality],
-            hash: data.chapter.hash
-        }
+    async getURLs(chapter: string | Chapter): Promise<{ urls: string[], hashes: string[], hash: string }> {
+        return getURLs(chapter);
     }
 
     /**
@@ -58,7 +76,7 @@ export class BaseGenerator {
      * @param {Chapter} chapter
      * @returns {Promise<Response>}
      */
-    async fetchImage(url, chapter) {
+    async fetchImage(url: string, chapter: Chapter): Promise<Response> {
         var res;
         try {
             res = await fetch(imageproxy + url);
@@ -68,8 +86,8 @@ export class BaseGenerator {
         }
         if(Math.floor(res.status / 100) !== 2) {
             for(var i = 0; i < RETRY_LIMIT; i++) {
-                chapter.baseUrl = await this.getURLs(chapter);
-                res = await fetch(chapter.baseUrl + "/" + url);
+                let baseUrl = await this.getURLs(chapter);
+                res = await fetch(baseUrl + "/" + url);
                 if(Math.floor(res.status / 100) === 2) return res;
             }
             throw new Error("Retry limit reached");

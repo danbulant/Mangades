@@ -1,5 +1,5 @@
 <script lang="ts">
-    import request, { imageproxy } from "$lib/util/request";
+    import request, { coverUrl, imageproxy } from "$lib/util/request";
 
     // export var mangaId: string;
     export var additionalList: {
@@ -23,14 +23,18 @@
         Loading art
     {:then list}
         {#each list.data.sort((a, b) => a.attributes.volume - b.attributes.volume) as item}
-            <img
-                on:click={() => (selectedImage = `${imageproxy}https://uploads.mangadex.org/covers/${mangaId}/${item.attributes.fileName}.512.jpg`)}
-                width="512"
-                height="805"
-                src="{imageproxy}https://uploads.mangadex.org/covers/{mangaId}/{item.attributes.fileName}.512.jpg"
-                alt=""
-                class="color"
-                draggable={false} />
+            <div class="img-container">
+                <img
+                    on:click={() => (selectedImage = coverUrl(mangaId, item))}
+                    width="512"
+                    height="805"
+                    src={coverUrl(mangaId, item)}
+                    alt=""
+                    draggable={false} />
+                <img class="img-backdrop"
+                    src={coverUrl(mangaId, item)}
+                    alt="">
+            </div>
         {/each}
     {/await}
     {#each additionalList as item}
@@ -99,7 +103,7 @@
         width: 100%;
         height: 100%;
     }
-    .main > img:first-child {
+    .main > :first-child {
         grid-column: 1 / span 2;
         grid-row: 1 / span 2;
         height: 20rem;

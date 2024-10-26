@@ -2,7 +2,7 @@
     import Chapter from "$lib/components/chapter.svelte";
     import { EpubGenerator } from "$lib/util/generateEpub";
     import { CBZGenerator } from "$lib/util/generateCbz";
-    import request, { imageproxy } from "$lib/util/request";
+    import request, { coverUrl, imageproxy } from "$lib/util/request";
     import { arraysEqual } from "$lib/util/arrays";
     import Tabs from "$lib/components/tabs/tabs.svelte";
     import { slide } from "svelte/transition";
@@ -18,6 +18,23 @@
     import RelatedManga from "./relatedManga.svelte";
     import { anilistInfo } from "./anilistInfo";
     import { isLogedIn } from "$lib/util/anilist";
+    import { BaseGenerator, getURLs } from "$lib/util/baseGenerator";
+    import FileItems from "$lib/components/fileItems.svelte";
+    import ShowTypeChooser from "$lib/components/showTypeChooser.svelte";
+
+    enum CoverArt {
+        AutoVolume = "auto-volume",
+        FirstPage = "first-page"
+    }
+    enum Group {
+        Single = "single",
+        Chapter = "chapter",
+        Volume = "volume"
+    }
+    enum Format {
+        Epub = "epub",
+        Cbz = "cbz"
+    }
 
     export var data;
 
@@ -30,7 +47,7 @@
     var title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
     $: title = manga.title.en || manga.title.jp || Object.values(manga.title)[0];
 
-    const defaultLanguages = ["en", "uk"];
+    const defaultLanguages = ["en"];
     let languages = defaultLanguages;
 
     let anilistData;
@@ -121,40 +138,11 @@
         processQueue();
     }
 
-    const generators = {
+    const generators: Record<Format, typeof BaseGenerator> = {
         epub: EpubGenerator,
         cbz: CBZGenerator
     }
-
-    function createGenerator(chapter, file) {
-        return new generators[format]({
-            file,
-            id: window.location.toString() + "-" + chapter.id,
-            language: chapter.attributes.translatedLanguage,
-            updatedAt: chapter.attributes.updatedAt,
-            title,
-            author: relationships.find(t => t.type === "author").attributes.name || "Unknown",
-            chapters: [{
-                id: chapter.id,
-                number: chapter.attributes.chapter,
-                volume: chapter.attributes.volume
-            }]
-        });
-    }
-    async function downloadSingle(chapter) {
-        const file = streamSaver.createWriteStream(`${title} ${chapter.attributes.chapter}.${format}`, {
-            writableStrategy: undefined, // (optional)
-            readableStrategy: undefined,  // (optional)
-        });
-
-        const generator = createGenerator(chapter, file)
-
-        console.log(generator);
-        queue.push(generator);
-        processQueue();
-    }
-
-    var format = "cbz";
+    var format: Format = Format.Cbz;
     var selected = [];
     function select(chapter) {
         console.log("Selecting", chapter);
@@ -170,63 +158,156 @@
             text = defaultText;
         }
     }
-    function downloadMulti() {
-        selected.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
-        if(!selected.length) return;
-        if(selected.length === 1) {
-            downloadSingle(selected.shift());
-            selected = [];
-            return;
-        }
-        const file = streamSaver.createWriteStream(`${title}.${format}`, {
-            writableStrategy: undefined, // (optional)
-            readableStrategy: undefined,  // (optional)
-        });
-        const generator = new generators[format]({
-            file,
-            id: window.location.toString(),
-            language: selected[0].attributes.translatedLanguage,
-            updatedAt: new Date,
-            title: title,
-            author: relationships.find(t => t.type === "author").attributes.name || "Unknown",
-            chapters: selected.map(chapter => ({
-                id: chapter.id,
-                title: chapter.attributes.title,
-                number: chapter.attributes.chapter,
-                volume: chapter.attributes.volume
-            }))
-        });
 
-        console.log(generator);
-        queue.push(generator);
-        selected = [];
-        processQueue();
+    function splitSelectionIntoFiles(selected, group: Group) {
+        if(!selected.length) return [];
+        selected.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
+        let files = [];
+
+        switch(group) {
+            case Group.Single:
+                files[0] = selected
+                break;
+            case Group.Chapter:
+                files = selected.map(chapter => [chapter]);
+                break;
+            case Group.Volume:
+                files = selected.reduce((acc, chapter) => {
+                    let last = acc[acc.length - 1];
+                    if(!last || last[0].attributes.volume !== chapter.attributes.volume) {
+                        acc.push([chapter]);
+                    } else {
+                        last.push(chapter);
+                    }
+                    return acc;
+                }, []);
+                break;
+        }
+        return files
     }
-    function downloadSeparate() {
-        selected.sort((a, b) => a.attributes.chapter - b.attributes.chapter);
-        if(!selected.length) return;
-        if(selected.length === 1) {
-            downloadSingle(selected.shift());
-            selected = [];
-            return;
+
+    function getNumberRanges(numbers) {
+        let ranges = [];
+        let last = numbers[0];
+        let start = last;
+        for(let i = 1; i < numbers.length; i++) {
+            if(numbers[i] - last > 1) {
+                ranges.push([start, last]);
+                start = numbers[i];
+            }
+            last = numbers[i];
+        }
+        ranges.push([start, last]);
+        return ranges;
+    }
+
+    function nameRanges(ranges) {
+        return ranges.map(range => {
+            if(range[0] === range[1]) return range[0];
+            return `${range[0]}-${range[1]}`;
+        }).join(", ");
+    }
+
+    function getNameOf(chapters) {
+        if(!chapters) return "Unknown";
+        if(chapters.length == 1) {
+            return `ch ${chapters[0].attributes.chapter}`;
+        }
+        // todo: check that it's the whole volume
+        let isSingleVolume = chapters[0].attributes.volume && chapters.find(t => t.attributes.volume !== chapters[0].attributes.volume) === undefined;
+        if(isSingleVolume) {
+            return `vol ${chapters[0].attributes.volume}`;
         }
 
-        for (const chapter of selected) {
-            const file = streamSaver.createWriteStream(`${title} ${chapter.attributes.chapter}.${format}`, {
+        let chapterNumbers = chapters.map(t => t.attributes.chapter);
+        let ranges = getNumberRanges(chapterNumbers);
+        return `ch ${nameRanges(ranges)}`;
+    }
+
+    function coverForVolumeFromArt(volume, art) {
+        if(!volume) volume = "1"
+        let cover = art.data.find(t => t.attributes.volume === volume);
+        if(!cover) return null;
+        return coverUrl(mangaId, cover);
+    }
+
+    async function previewItems(selected, groupMode, coverArtMode, format) {
+        let files = splitSelectionIntoFiles(selected, groupMode);
+        // const author = relationships.find(t => t.type === "author").attributes.name || "Unknown";
+        let items: {
+            cover: string;
+            title: string;
+            chapters: string[]
+        }[] = [];
+
+        switch(coverArtMode) {
+            case CoverArt.FirstPage:
+                items = await Promise.all(files.map(async file => {
+                    let urls = await getURLs(file[0])
+                    console.log(file, urls)
+                    return {
+                        title: `${title} - ${getNameOf(file)}.${format}`,
+                        chapters: file.map(chapter => `${chapter.attributes.chapter}`),
+                        cover: imageproxy + urls.urls[0]
+                    };
+                }));
+                break;
+            case CoverArt.AutoVolume:
+                let art = await list;
+                items = files.map(file => {
+                    return {
+                        title: `${title} - ${getNameOf(file)}.${format}`,
+                        chapters: file.map(chapter => `${chapter.attributes.chapter}`),
+                        cover: coverForVolumeFromArt(file[0].attributes.volume, art),
+                    };
+                });
+        }
+        return items
+    }
+
+    async function downloadMulti() {
+        if(!selected.length) return;
+
+        // @ts-ignore
+        if(window.goatcounter) window.goatcounter.count({
+            path: window.location.pathname + "/download",
+            title: "Download " + title,
+        });
+        else console.warn("Page change; GoatCounter not loaded (yet?)", window.location.pathname);
+
+        let files = splitSelectionIntoFiles(selected, group);
+        const author = relationships.find(t => t.type === "author").attributes.name || "Unknown";
+        let art = coverArt == CoverArt.AutoVolume ? await list : null;
+
+        for(let file of files) {
+            let name = `${title} - ${getNameOf(file)}`;
+            const stream = streamSaver.createWriteStream(`${name}.${format}`, {
                 writableStrategy: undefined, // (optional)
                 readableStrategy: undefined,  // (optional)
             });
-
-            const generator = createGenerator(chapter, file)
-
+            const generator = new generators[format]({
+                file: stream,
+                id: window.location.toString(),
+                language: file[0].attributes.translatedLanguage,
+                updatedAt: file.map(t => t.attributes.updatedAt).sort((a, b) => a - b)[0],
+                title: name,
+                author,
+                coverUrl: art && coverForVolumeFromArt(file[0].attributes.volume, art),
+                chapters: file.map(chapter => ({
+                    id: chapter.id,
+                    title: chapter.attributes.title,
+                    number: chapter.attributes.chapter,
+                    volume: chapter.attributes.volume
+                }))
+            });
+    
             console.log(generator);
             queue.push(generator);
         }
-
+        queue = queue;
         selected = [];
         processQueue();
     }
-
     /**
      * @param {BeforeUnloadEvent} e
      */
@@ -286,14 +367,12 @@
             additionalImages.push({
                 src: data.coverImage.large,
                 alt: "Cover image from anilist",
-                // color: data.coverImage.color,
                 height: 1,
                 width: 1
             });
             additionalImages.push({
                 src: data.bannerImage,
                 alt: "Banner image from anilist",
-                // color: data.coverImage.color,
                 height: 1,
                 width: 3
             });
@@ -313,7 +392,7 @@
         if(loadingNextPage) return;
         console.log("Loading next page");
         loadingNextPage = true;
-        chapters = await getMangaChapters(mangaId);
+        chapters = await getMangaChapters(mangaId, languages);
         await tick();
         loadingNextPage = false;
         swiper.slideToClosest();
@@ -330,7 +409,14 @@
     let uniqueChapterCount;
     $: uniqueChapterCount = chapters?.data.filter((t, i, a) => a.findIndex(t2 => Math.floor(t2.attributes.chapter) === Math.floor(t.attributes.chapter)) === i).length;
 
-    let list: any;
+    let list: Promise<{ data: {
+        id: string,
+        type: string,
+        attributes: {
+            fileName: string,
+            volume: string,
+        }
+    }[] }>;
     $: list = request(
         "cover?limit=50&manga[]=" + mangaId + languages.map(t => "&locales[]=" + t).join("")
     );
@@ -345,6 +431,9 @@
             }
         }
     }
+
+    let coverArt: CoverArt = CoverArt.FirstPage;
+    let group: Group = Group.Single;
 </script>
 
 <svelte:window on:beforeunload={beforeUnload} bind:innerWidth={width} bind:scrollY bind:innerHeight />
@@ -500,28 +589,79 @@
     >
         <SwiperSlide>
             <div class="chapter-list" style="min-height: 30rem;">
-                <div class="state {state}">
-                    <div class="progress" style="width: {progress * 100}%;"></div>
-            
-                    <p>
-                        {text}
-                    </p>
-                </div>
-            
-                {#if queue.length > 0}
+                {#if queue && queue.length > 0}
                     <p><i>{queue.length} downloads queued.</i></p>
                 {/if}
-            
+                
                 <div class="download">
-                    <select name="format" bind:value={format} id="select-format">
-                        <option value="cbz"><b>.cbz</b> Comic Book Zip</option>
-                        <option value="epub"><b>.epub</b> Electronic publication</option>
-                    </select>
-                    <button disabled={!selected.length} on:click={downloadMulti}>Download</button>
-                    <button disabled={!selected.length} on:click={downloadSeparate}>Download Separate</button>
-                </div>
-                <div class="download-options">
+                    <div class="status">
+                        <div class="state {state}">
+                            <div class="progress" style="width: {progress * 100}%;"></div>
+                    
+                            <p>
+                                {text}
+                            </p>
+                        </div>
+                        <button class="download-btn" disabled={!selected.length} on:click={downloadMulti}>Download</button>
+                    </div>
+                    <div class="options">
+                        <fieldset>
+                            <legend>Format</legend>
+    
+                            <label>
+                                <input type="radio" name="format" value={Format.Cbz} bind:group={format}>
+                                <b>.<abbr title="Comic Book Zip">cbz</abbr></b>
+                            </label>
+                            <label>
+                                <input type="radio" name="format" value={Format.Epub} bind:group={format}>
+                                <b>.<abbr title="Electronic Publication">epub</abbr></b>
+                            </label>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Cover art</legend>
+    
+                            <label>
+                                <input type="radio" name="cover" value={CoverArt.FirstPage} bind:group={coverArt}>
+    
+                                First page
+                            </label>
+                            <label>
+                                <input type="radio" name="cover" value={CoverArt.AutoVolume} bind:group={coverArt}>
+    
+                                From art, by volume
+                            </label>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Split files</legend>
+    
+                            <label>
+                                <input type="radio" name="group" value={Group.Single} bind:group={group}>
+    
+                                Single file
+                            </label>
+                            <label>
+                                <input type="radio" name="group" value={Group.Chapter} bind:group={group}>
+    
+                                By chapter
+                            </label>
+                            <label>
+                                <input type="radio" name="group" value={Group.Volume} bind:group={group}>
+    
+                                By volume
+                            </label>
+                        </fieldset>
+                    </div>
+                    <p class="note">Splitting into multiple files may require browser permission.</p>
 
+                    <h3>Preview</h3>
+
+                    <ShowTypeChooser />
+
+                    {#await previewItems(selected, group, coverArt, format)}
+                        <div>Loading preview...</div>
+                    {:then items}
+                        <FileItems chapters={items} />
+                    {/await}
                 </div>
 
                 <div class="flex">
@@ -548,7 +688,7 @@
                     <table>
                         <tbody>
                             {#each chapters.data as chapter} 
-                                <Chapter read={alReadProgress && alReadProgress >= parseInt(chapter.attributes.chapter)} progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} on:download={() => downloadSingle(chapter)} />
+                                <Chapter read={alReadProgress && alReadProgress >= parseInt(chapter.attributes.chapter)} progress={(progressMap.get(chapter.id) || 0) / chapter.attributes.pages} {chapter} disabledDownload={!!progress} selected={selected.includes(chapter)} on:select={() => select(chapter)} />
                             {/each}
                         </tbody>
                     </table>
@@ -556,7 +696,7 @@
             </div>
         </SwiperSlide>
         <SwiperSlide>
-            <div class="art-list" style="min-height: 30rem; overflow: hidden;">
+            <div class="art-list" style="min-height: 30rem;">
                 <ArtList {mangaId} {list} bind:selectedImage additionalList={additionalImages} />
             </div>
         </SwiperSlide>
@@ -583,6 +723,7 @@
                             {#if manga.links.al}
                                 <a target="_blank" href="https://anilist.co/manga/{manga.links.al}"><Favicon url="https://anilist.co" /> Anilist</a> <br>
                             {/if}
+                            <a target="_blank" href="https://mangadex.org/title/{mangaId}"><Favicon url="https://mangadex.org"/> Mangadex.org</a> <br>
                             {#if manga.links.ap}
                                 <a target="_blank" href="https://www.anime-planet.com/manga/{manga.links.ap}"><Favicon url="https://anime-planet.com" /> Animeplanet</a> <br>
                             {/if}
@@ -613,8 +754,6 @@
                             {#if manga.links.engtl}
                                 <a target="_blank" href="{manga.links.engtl}"><Favicon url={manga.links.engtl} /> engtl</a> <br>
                             {/if}
-
-                            <a target="_blank" href="https://mangadex.org/title/{mangaId}"><Favicon url="https://mangadex.org"/> Mangadex.org</a>
                         </div>
                     {/if}
                 </div>
@@ -653,7 +792,6 @@
     }
     .langs {
         display: flex;
-        gap: 0.5rem;
         margin: 0 1rem;
         overflow-x: auto;
     }
@@ -664,6 +802,9 @@
         color: white;
         border: none;
         cursor: pointer;
+
+        margin: 5px;
+        padding: 5px;
     }
     .langs button.enabled {
         background: rgb(107, 107, 107);
@@ -866,14 +1007,14 @@
         margin-block-start: 0;
         margin-block-end: 0;
         padding: 10px;
-        background: rgb(214, 214, 214);
+        background: rgb(64,64,64);
         border-radius: 5px 0 5px 5px;
     }
     :global(.dark main > .copyright.copyright.copyright) {
         background: rgb(64, 64, 64);
     }
     .copyright-header {
-        background: rgb(214, 214, 214);
+        background: rgb(64,64,64);
         padding: 10px;
         border-radius: 5px;
         user-select: none;
@@ -884,18 +1025,6 @@
     }
     .copyright-header-active {
         border-radius: 5px 5px 0 0;
-    }
-    .download {
-        display: flex;
-        width: 100%;
-        margin-top: 5px;
-    }
-    .download select {
-        flex-grow: 1;
-        margin-inline: 5px;
-    }
-    .download button {
-        margin-inline: 5px;
     }
     main {
         font-size: 1.1rem;
@@ -917,28 +1046,37 @@
 
     .state {
         border-radius: 10px;
-        border-width: 4px;
-        border-style: solid;
         padding: 10px;
         position: relative;
         transition: all .3s;
+        flex-grow: 1;
     }
     :global(.dark .state) {
         color: black;
     }
+    .download .status {
+        display: flex;
+        gap: 1rem;
+    }
+    .download .options {
+        display: flex;
+        gap: 1rem;
+    }
+    .download .note {
+        font-size: 0.8rem;
+        color: rgb(175, 175, 175);
+    }
 
     .state.idle {
-        background: rgb(140, 209, 255);
-        border-color: rgb(77, 184, 255);
+        background: transparent;
+        color: white;
     }
 
     .state.active {
         background: rgb(255, 255, 81);
-        border-color: yellow;
     }
     .state.error {
         background: rgb(255, 103, 103);
-        border-color: rgb(255, 59, 59);
     }
 
     .state p {
@@ -957,6 +1095,6 @@
         border-bottom-left-radius: 10px;
     }
     .state.active .progress {
-        background: rgb(140, 209, 255);
+        background: rgba(255,255,255, .1);
     }
 </style>

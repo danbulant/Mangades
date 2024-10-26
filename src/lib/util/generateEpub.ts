@@ -50,6 +50,27 @@ export class EpubGenerator extends BaseGenerator {
         
         this.callback(); // signals the template is ready
 
+        if(this.opts.coverUrl) {
+            const res = await fetch(this.opts.coverUrl);
+            const cover = new ZipPassThrough("OEBPS/cover." + this.opts.coverUrl.substr(this.opts.coverUrl.lastIndexOf(".") + 1));
+            this.zip.add(cover);
+            const data = new Uint8Array(await res.arrayBuffer());
+            cover.push(data, true);
+            const textContent = new ZipPassThrough("OEBPS/cover.xhtml");
+            this.zip.add(textContent);
+            textContent.push(enc.encode(`<?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+            <head>
+                <title>Cover</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                <meta name="EPB-UUID" content=""/>
+            </head>
+            <body>
+                <img style="margin:auto;height:100%;" src="cover.${this.opts.coverUrl.substr(this.opts.coverUrl.lastIndexOf(".") + 1)}" />
+            </body>
+            </html>`), true);
+        }
+
         for(const chapterI in this.opts.chapters) {
             const chapter = this.opts.chapters[chapterI];
             if(chapter.number == null || chapter.number == undefined) chapter.number = chapterI;
@@ -131,6 +152,8 @@ export class EpubGenerator extends BaseGenerator {
         </metadata>
 
         <manifest>
+        ${this.opts.coverUrl ? `<item id="icover" href="cover.${this.opts.coverUrl.substr(this.opts.coverUrl.lastIndexOf(".") + 1)}" media-type="image/${this.opts.coverUrl.substr(this.opts.coverUrl.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : this.opts.coverUrl.substr(this.opts.coverUrl.lastIndexOf(".") + 1)}"/>` : ""}
+        ${this.opts.coverUrl ? `<item id="pcover" href="cover.xhtml" media-type="application/xhtml+xml" />` : ""}
         ${this.hashes.map((t, i) => `    <item id="i${i}" href="${t.hash}" fallback="fallback" media-type="image/${t.hash.substr(t.hash.lastIndexOf(".") + 1) === "jpg" ? "jpeg" : t.hash.substr(t.hash.lastIndexOf(".") + 1)}"/>`).join("\n")}
         ${this.hashes.map((t, i) => `    <item id="p${i}" href="${i}.xhtml"  media-type="application/xhtml+xml" />`).join("\n")}
 
@@ -138,6 +161,7 @@ export class EpubGenerator extends BaseGenerator {
         </manifest>
 
         <spine toc="ncxtoc">
+        ${this.opts.coverUrl ? `<itemref idref="pcover" linear="yes" />` : ""}
         ${this.hashes.map((t, i) => `    <itemref idref="p${i}" linear="yes" />`).join("\n")}
             <itemref idref="fallback" linear="no" />
         </spine>
@@ -165,6 +189,12 @@ export class EpubGenerator extends BaseGenerator {
         </docAuthor>
 
         <navMap>
+        ${this.opts.coverUrl ? `<navPoint id="cover" playOrder="0">
+            <navLabel>
+                <text>Cover</text>
+            </navLabel>
+            <content src="cover.xhtml"/>
+        </navPoint>` : ""}
         ${this.opts.chapters.map((t, i) => `
             <navPoint id="p${this.hashes.findIndex(h => h.hash === t.hashes[0])}" playOrder="${i + 1}">
                 <navLabel>

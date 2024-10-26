@@ -5,4 +5,7 @@ declare namespace App {
         message: string;
         code: string;
     }
+    interface Window {
+        goatcounter: any;
+    }
 }

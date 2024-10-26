@@ -1,6 +1,5 @@
 <script lang="ts">
     import SvelteMarkdown from "svelte-markdown";
-    import { flip } from "svelte/animate";
     import { blur, crossfade } from "svelte/transition";
     import { showNsfw } from "./showNsfwChooser.svelte";
     import { showType } from "./showTypeChooser.svelte";
@@ -36,7 +35,7 @@
                 {/if}
             </div>
         {:else}
-            Broken art
+            Missing cover
         {/if}
         <div class="info">
             <h3>{title}</h3>

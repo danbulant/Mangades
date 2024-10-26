@@ -34,6 +34,14 @@ export class CBZGenerator extends BaseGenerator {
                 chapter.number = chapterI;
             }
             const imageCountLength = chapter.links.length.toString().length;
+            if(this.opts.coverUrl) {
+                let coverExtension = this.opts.coverUrl.substr(this.opts.coverUrl.lastIndexOf(".") + 1);
+                const cover = new ZipPassThrough(`${this.opts.title} 00 cover.${coverExtension}`);
+                this.zip.add(cover);
+                const res = await fetch(this.opts.coverUrl);
+                const data = new Uint8Array(await res.arrayBuffer());
+                cover.push(data, true);
+            }
             for(const i in chapter.links) {
                 let url = chapter.links[i];
                 let hash = chapter.hashes[i];
@@ -57,5 +65,6 @@ export class CBZGenerator extends BaseGenerator {
             }
         }
         this.zip.end();
+        this.callback(-1, -1, true);
     }
 }
